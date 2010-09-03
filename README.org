@@ -4,6 +4,32 @@
 
 * org-osm --- OSM maps in Org mode
 
+  =osm-maps.el= provides functions to produce SVG images for tracks.  Tracks are
+  made of pairs of coordinates.
+
+  Currently, two basic uses are possible:
+
+  1. Create an SVG image, that uses the tiles online on the openstreetmap.org
+     servers.
+  2. Download the tiles to a local directory and produce SVG images, that use
+     those local image tiles as background.
+
+
+* Aims
+
+  - Configure zoom levels and areas to cache the images for.  But still produce
+    SVGs with online tiles for tracks outside of those areas.
+  - Produce a draggable JavaScript map on HTML export.
+  - Reuse the draggable JavaScript map to draw new tracks.
+  - Allow for POIs.
+  - Draw kilometer or mile markers.
+  - Configure a start and destination icons.
+
+
+* Ideas
+
+  - Allow multiple tracks on one map.
+  - Draw a legend.
 
 
 
