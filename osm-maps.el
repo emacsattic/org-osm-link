@@ -227,11 +227,12 @@ current `default-directory'."
         (maxy 0.0)
         (z (or zoom osm-default-zoom))
         (margin (* zoom osm-margin))
+        (mtop 0) (mleft 0)              ; margin differences
         (defdir default-directory)
+        target                          ; File to write the imate to
+        cmin cmax rmin rmax             ; rows and columns
+        x y w h                         ; helpers
         tmp
-        target
-        x y w h
-        cmin cmax rmin rmax
         )
     (mapc
      (lambda (p)
@@ -279,9 +280,14 @@ current `default-directory'."
 
     ;; Ensure we have the tiles:
     (osm-fetch-area cmin rmin cmax rmax z)
+    ;; calculate width and height:
+    (setq w (- maxx minx)
+          h (- maxy miny))
+    ;; Calculate the margines.  The two margins now are positive integers to
+    ;; substract from all x and y coords.
+    (setq mtop  (- miny (lsh rmin 8))
+          mleft (- minx (lsh cmin 8)))
     ;; Create SVG file and draw the track on it:
-    (setq w (lsh (+ 1 (- cmax cmin)) 8)
-          h (lsh (+ 1 (- rmax rmin)) 8))
     (let ((ama auto-mode-alist))
       (setq auto-mode-alist nil)
       (with-temp-buffer
@@ -310,8 +316,8 @@ current `default-directory'."
             (insert
              "  <image\n"
              "		xlink:href=\"" tmp "\"\n"
-             (format "		x=\"%d\"\n" (lsh (- x cmin) 8))
-             (format "		y=\"%d\"\n" (lsh (- y rmin) 8))
+             (format "		x=\"%d\"\n" (- (lsh (- x cmin) 8) mleft))
+             (format "		y=\"%d\"\n" (- (lsh (- y rmin) 8) mtop))
              "		width=\"256\"\n"
              "		height=\"256\" />\n")
             (setq x (+ x 1)))
@@ -327,8 +333,8 @@ current `default-directory'."
            (insert
             (format " %f,%f"
                     ;; We loose 6 X-Pixels somewhere, that's why we add 6 here:
-                    (+ (- (osm-longitude-to-x (car c) z)  (lsh cmin 8)) 6)
-                    (- (osm-latitude-to-y (cadr  c) z) (lsh rmin 8))))
+                    (+ (- (- (osm-longitude-to-x (car c) z)  (lsh cmin 8)) mleft) 6)
+                    (- (- (osm-latitude-to-y (cadr  c) z) (lsh rmin 8)) mtop)))
            (when tmp
              (setq tmp nil)
              (insert " L")))
