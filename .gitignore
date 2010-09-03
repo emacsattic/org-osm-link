@@ -1,0 +1,20 @@
+# Backups:
+*~
+*#
+.#*
+*.bak
+
+# Archives:
+*.tar.bz2
+*.tar.gz
+*.zip
+
+# Emacs:
+*emacs.desktop*
+
+# SCMS:
+_MTN
+.hg*
+
+# Images we produce for testing:
+*.svg
