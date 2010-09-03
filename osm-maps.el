@@ -6,7 +6,7 @@
 ;; Contact:
 ;;
 ;;    Phone: +49 (0) 173 - 83 93 4 17
-;;    Email: sebastian_rose@gmx.de
+;;    Email: sebastian_rose gmx de
 ;;
 ;; Released under the GNU General Public License version 3
 ;; see: http://www.gnu.org/licenses/gpl-3.0.html
@@ -221,19 +221,19 @@ values of the background tiles.
 If FILE-NAME is a string, use that as file name.  If absolute,
 use the provided path, else create the image relative to the
 current `default-directory'."
-  (let ((minx 360.0)
-        (maxx 0.0)
-        (miny 90.0)
-        (maxy 0.0)
-        (z (or zoom osm-default-zoom))
-        (margin (* zoom osm-margin))
-        (mtop 0) (mleft 0)              ; margin differences
-        (defdir default-directory)
-        target                          ; File to write the imate to
-        cmin cmax rmin rmax             ; rows and columns
-        x y w h                         ; helpers
-        tmp
-        )
+  (let* ((minx 360.0)
+         (maxx 0.0)
+         (miny 90.0)
+         (maxy 0.0)
+         (z (or zoom osm-default-zoom))
+         (margin (* z osm-margin))
+         (mtop 0) (mleft 0)              ; margin differences
+         (defdir default-directory)
+         target                          ; File to write the imate to
+         cmin cmax rmin rmax             ; rows and columns
+         x y w h                         ; helpers
+         tmp
+         )
     (mapc
      (lambda (p)
        (and (< (car p) minx)  (setq minx (car p)))
@@ -367,7 +367,6 @@ current `default-directory'."
              image-list))
           track-list)
     image-list))
-
 
 
 
