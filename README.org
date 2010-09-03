@@ -1,0 +1,13 @@
+#+STARTUP: showall
+
+
+
+* org-osm --- OSM maps in Org mode
+
+
+
+
+# Local Variables:
+# mode: Org
+# mode: iimage
+# End:
