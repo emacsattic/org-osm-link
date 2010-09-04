@@ -35,6 +35,13 @@ We balance the load on OSM servers.")
 (defvar osm-host 0
   "Current offset in osm-hosts.")
 
+(defconst osm-track-regexp              ; DO NOT CHANGE without looking in osm-check-track!
+  "^'?\\((\\(?:[[:space:]]*([0-9]+\\(?:.[0-9]*\\)?[[:space:]]+[0-9]+\\(?:.[0-9]*\\)?[[:space:]]*)\\)+[[:space:]]*)\\)[[:space:]]*\\(\\(?:[^)[:space:]]\\)*\\)?[[:space:]]*"
+  "Match a valid track, i.e. a list of lists of coords.
+ (match-string 1) will hold the track data, (match-string 2)
+will hold the rest of the string with all whitespace removed.
+See also: `osm-check-track'.")
+
 (defun osm-yx-to-xy-lol (lol)
   "Some application return lists with the values swapped:
  ((y1 x1) (y2 x2) ... ).  This functions turnes them into
@@ -367,6 +374,30 @@ current `default-directory'."
              image-list))
           track-list)
     image-list))
+
+(defun osm-check-track (track)
+  "Check, if TRACK is valid.
+If the TRACK is invalid, throw an error.
+Currently only strings and lists are checked.  Lists are
+expected to be lists of lists,  each sub-list a list of two
+float values.  Only the first sub-list is checked.  Strings
+are expected to be a valid elisp representation of such a lol.
+
+This function returns the lol as elisp object suitable as
+parameter for `osm-draw-track' and similar.
+
+`match-string' 1 will hold the track data as string,
+`match-string' 2 will hold the rest of the string with all
+whitespace removed.
+
+See `osm-track-regexp' for more information."
+  (let ((errstr "The track does not look like valid coords: %s")
+        (str (if (stringp track)
+                 track
+               (format "%s" track))))
+    (if (string-match osm-track-regexp str)
+        (read (match-string 1 str))
+      (error errstr track))))
 
 
 

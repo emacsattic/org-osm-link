@@ -18,21 +18,43 @@
 ;; Example link:
 ;;   [[track:((12.0399212 14.919293) (32.12394 15.342345))][Stupid track]]
 
+;; Installation
+
+;; Add this to your emacs setup:
+;;
+;;   (require 'org-osm-link)
+;;   (osm-install-org-link-type)
+
+
+
 
 (require 'org)
 (require 'osm-maps)
 
 
 
+
+(defun osm-org-link-store-link ()
+  "Store a link for a certain track."
+  (let (link desc)
+    (setq link (org-make-link
+                "track:"
+                (read-from-minibuffer "Coords: ")))
+    (setq desc (read-from-minibuffer "Desription: "))
+    (org-store-link-props :type "track"
+                          :link link
+                          :desc desc)
+    link))
+
 (defun osm-org-link-follow (path)
   "Follow the Org mode link when clicked."
-  (unless (string-match
-           "(\\([[:space:]]*([0-9]+\\(.[0-9]*\\)?[[:space:]]+[0-9]+\\(.[0-9]*\\)?[[:space:]]*)\\)+[[:space:]]*)"
-           path)
-    (error "The link's path does not look like coords: %s" path))
-  (let ((target (osm-draw-track
-                 (read path))))
-    (find-file-other-frame target)))
+  (let* ((coords (osm-check-track path))
+         (file (match-string 2 path))
+         (target (osm-draw-track coords file))
+         (file (file-name-nondirectory target)))
+    (if (get-buffer file)
+        (switch-to-buffer file)
+      (find-file target))))
 
 (defun osm-org-link-export (path desc format)
   "Export a track from Org files.
