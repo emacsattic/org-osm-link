@@ -40,7 +40,9 @@ We balance the load on OSM servers.")
   "Match a valid track, i.e. a list of lists of coords.
  (match-string 1) will hold the track data, (match-string 2)
 will hold the rest of the string with all whitespace removed.
+
 See also: `osm-check-track'.")
+
 
 (defun osm-yx-to-xy-lol (lol)
   "Some application return lists with the values swapped:
@@ -51,6 +53,7 @@ expect the latter format."
              'reverse
              lol)))
 
+
 (defun osm-new-tile (x y z)
   "Return a new tile as used throughout this file.
 A tile is a list (x y z url path). Either url or path is nil,
@@ -59,6 +62,7 @@ depending on wether the tile is cached on disk or not."
     (if (file-exists-p cfile)
         (list x y z nil cfile)
       (list x y z (osm-url-for-tile x y z) nil))))
+
 
 (defun osm-url-for-tile (x y z)
   "Build the URL for a tile with coords X Y and Z."
@@ -70,12 +74,14 @@ depending on wether the tile is cached on disk or not."
           (number-to-string x) "/"
           (number-to-string y) ".png"))
 
+
 (defun osm-cache-file-name (x y z)
   "Build the file name of a tiles cache file."
   (concat (file-name-as-directory osm-default-cache-directory)
           (number-to-string z) "/"
           (number-to-string x) "/"
           (number-to-string y) ".png"))
+
 
 (defun osm-area-file-name (x y w h &optional zoom)
   "Build the file name of the background for an area denoted
@@ -86,6 +92,7 @@ W and H the width and height in tiles respectively."
     (format "%s%d/area-%d-%d-%d-%d"
             (file-name-as-directory osm-default-cache-directory)
             z x y w h)))
+
 
 (defun osm-fetch-tile (x y z)
   "Fetch a tile from an OpenStreetmap server.
@@ -101,6 +108,7 @@ Return the absolut path to the image file or nil if
           (url-copy-file (osm-url-for-tile x y z) target-file t))
         target-file)
     nil))
+
 
 (defun osm-fetch-area (min-x min-y max-x max-y &optional zoom)
   "Fetch tiles for an entire area.
@@ -118,6 +126,7 @@ MIN-X, MIN-Y, MAX-X, MAX-Y and ZOOM must be positive integer values."
       (setq y (+ 1 y)))
     (message "Successfully fetched %s tiles." fetched)))
 
+
 (defun osm-zoom (val z &optional new-z)
   "Zoom a value.  VAL could be a tile number (x or y) or a Pixel.
 If NEW-Z is provided, assume VAL is in Z and zoom to NEW-Z.
@@ -126,6 +135,7 @@ The return value is always an integer."
   (if new-z
       (lsh val (- new-z z))
     (lsh val z)))
+
 
 (defun osm-compose-area-background (min-x min-y max-x max-y &optional zoom)
   "Compose a background PNG image (i.e. a map) for an area.
@@ -163,6 +173,7 @@ Deprecated."
     target
     ))
 
+
 (defun osm-longitude-to-x (longitude zoom)
   "Return the x value in pixels from the date line for
 a certain latitude."
@@ -176,6 +187,7 @@ a certain latitude."
          (greenwich (lsh circ -1))
          (pixel (floor (+ greenwich (* (/ circ 360) longitude)))))
     pixel))
+
 
 (defun osm-latitude-to-y (latitude zoom)
   "Return the y value in pixels (offset) from the northpole and the
@@ -208,13 +220,16 @@ y-number of the tile that pixel is found on as '(pixel tileY)."
       (floor (+ equator ret)))
     ))
 
+
 (defun osm-column-for-x (x zoom)
   "Return the column index that contains X (a pixel)."
   (lsh x -8))
 
+
 (defun osm-row-for-y (y zoom)
   "Return the column index that contains Y (a pixel)."
   (lsh y -8))
+
 
 (defun osm-draw-track (points &optional file-name zoom)
   "Draw a track.
@@ -364,6 +379,7 @@ current `default-directory'."
     target
     ))
 
+
 (defun osm-draw-tracks (track-list &optional zoom)
   "Draw tracks."
   (let ((z (or zoom osm-default-zoom))
@@ -375,13 +391,14 @@ current `default-directory'."
           track-list)
     image-list))
 
+
 (defun osm-check-track (track)
   "Check, if TRACK is valid.
 If the TRACK is invalid, throw an error.
 Currently only strings and lists are checked.  Lists are
 expected to be lists of lists,  each sub-list a list of two
-float values.  Only the first sub-list is checked.  Strings
-are expected to be a valid elisp representation of such a lol.
+float values.  Strings are expected to be a valid elisp
+representation of such a lol.
 
 This function returns the lol as elisp object suitable as
 parameter for `osm-draw-track' and similar.
