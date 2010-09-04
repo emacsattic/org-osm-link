@@ -311,71 +311,75 @@ current `default-directory'."
           mleft (- minx (lsh cmin 8)))
     ;; Create SVG file and draw the track on it:
     (let ((ama auto-mode-alist))
-      (setq auto-mode-alist nil)
-      (with-temp-buffer
-        (write-file target t)
-        (fundamental-mode)
-        (insert
-         "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\" ?>\n"
-         "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n"
-         "<svg\n"
-         "	xmlns:svg=\"http://www.w3.org/2000/svg\"\n"
-         "	xmlns=\"http://www.w3.org/2000/svg\"\n"
-         "	xmlns:xlink=\"http://www.w3.org/1999/xlink\"\n"
-         "	version=\"1.1\"\n"
-         "	width=\""   (format "%d" w)  "\"\n"
-         "	height=\""  (format "%d" h)  "\">\n"
-         " <g id=\"layer1\">\n")
-        (setq y rmin)
-        (while (<= y rmax)
-          (setq x cmin)
-          (while (<= x cmax)
-            (setq tmp
-                  (if osm-default-cache-directory
-                      (concat "file://"
-                              (expand-file-name (osm-fetch-tile x y z)))
-                    (osm-url-for-tile x y z)))
-            (insert
-             "  <image\n"
-             "		xlink:href=\"" tmp "\"\n"
-             (format "		x=\"%d\"\n" (- (lsh (- x cmin) 8) mleft))
-             (format "		y=\"%d\"\n" (- (lsh (- y rmin) 8) mtop))
-             "		width=\"256\"\n"
-             "		height=\"256\" />\n")
-            (setq x (+ x 1)))
-          (setq y (+ y 1)))
+      (unwind-protect
+          (progn
+            (setq auto-mode-alist nil)
+            (with-temp-buffer
+              (write-file target t)
+              (fundamental-mode)
+              (insert
+               "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\" ?>\n"
+               "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n"
+               "<svg\n"
+               "	xmlns:svg=\"http://www.w3.org/2000/svg\"\n"
+               "	xmlns=\"http://www.w3.org/2000/svg\"\n"
+               "	xmlns:xlink=\"http://www.w3.org/1999/xlink\"\n"
+               "	version=\"1.1\"\n"
+               "	width=\""   (format "%d" w)  "\"\n"
+               "	height=\""  (format "%d" h)  "\">\n"
+               " <g id=\"layer1\">\n")
+              (setq y rmin)
+              (while (<= y rmax)
+                (setq x cmin)
+                (while (<= x cmax)
+                  (setq tmp
+                        (if osm-default-cache-directory
+                            (concat "file://"
+                                    (expand-file-name (osm-fetch-tile x y z)))
+                          (osm-url-for-tile x y z)))
+                  (insert
+                   "  <image\n"
+                   "		xlink:href=\"" tmp "\"\n"
+                   (format "		x=\"%d\"\n" (- (lsh (- x cmin) 8) mleft))
+                   (format "		y=\"%d\"\n" (- (lsh (- y rmin) 8) mtop))
+                   "		width=\"256\"\n"
+                   "		height=\"256\" />\n")
+                  (setq x (+ x 1)))
+                (setq y (+ y 1)))
 
-        ;; Draw the track
-        (insert
-         "  <path\n"
-         "		d=\"M")
-        (setq tmp t)
-        (mapc
-         (lambda (c)
-           (insert
-            (format " %f,%f"
-                    ;; We loose 6 X-Pixels somewhere, that's why we add 6 here:
-                    (+ (- (- (osm-longitude-to-x (car c) z)  (lsh cmin 8)) mleft) 6)
-                    (- (- (osm-latitude-to-y (cadr  c) z) (lsh rmin 8)) mtop)))
-           (when tmp
-             (setq tmp nil)
-             (insert " L")))
-         points)
-        (insert "\"\n" ;; end of d value.
-                "		style=\"fill:none;"
-                "stroke:#ff0000;stroke-width:"
-                (format "%d" (if (<= z 10) 1.5 (+ 1.5 (* 0.6 (- z 10)))))
-                ";stroke-linecap:round;stroke-linejoin:round;"
-                "stroke-miterlimit:4;stroke-opacity:0.65;stroke-dasharray:none\" />\n")
+              ;; Draw the track
+              (insert
+               "  <path\n"
+               "		d=\"M")
+              (setq tmp t)
+              (mapc
+               (lambda (c)
+                 (insert
+                  (format " %f,%f"
+                          ;; We loose 6 X-Pixels somewhere, that's why we add 6 here:
+                          (+ (- (- (osm-longitude-to-x (car c) z)  (lsh cmin 8)) mleft) 6)
+                          (- (- (osm-latitude-to-y (cadr  c) z) (lsh rmin 8)) mtop)))
+                 (when tmp
+                   (setq tmp nil)
+                   (insert " L")))
+               points)
+              (insert "\"\n" ;; end of d value.
+                      "		style=\"fill:none;"
+                      "stroke:#ff0000;stroke-width:"
+                      (format "%d" (if (<= z 10) 1.5 (+ 1.5 (* 0.6 (- z 10)))))
+                      ";stroke-linecap:round;stroke-linejoin:round;"
+                      "stroke-miterlimit:4;stroke-opacity:0.65;stroke-dasharray:none\" />\n")
 
-        (insert
-         " </g>\n"
-         "</svg>\n")
-        ;; We copy the file, to circumvent the delay produced by image mode, if
-        ;; tiles on the server are used.
-        (save-buffer 0)
-        ) ; end with-temp-buffer
-      (setq auto-mode-alist ama))
+              (insert
+               " </g>\n"
+               "</svg>\n")
+              ;; We copy the file, to circumvent the delay produced by image mode, if
+              ;; tiles on the server are used.
+              (save-buffer 0)
+              )                         ; end with-temp-buffer
+            )                           ; end progn
+        (setq auto-mode-alist ama))     ; end unwind-protect
+      )                                 ; end of let
     target
     ))
 
