@@ -22,18 +22,21 @@
 
   : (require 'org-osm-link)
 
-  The caching behaviour, if any, is currently controlled by the variable
-  =osm-default-cache-directory=.  If this variable is non-nil, the background
-  tiles are downloaded and stored to disc for local (fast) use.
+  After restarting Emacs (or evalutating the code above) you may customize the
+  new OSM features.
 
-  Be careful!  This can take hours with slow connections for bigger areas.  But
-  only once per zoom level though.  The area I use for running uses 316 MB disc
-  space currently (I just use three zoom levels).
+  The most important feature to adjust ist the caching behaviour.  This is
+  currently controlled by the variable =osm-do-cache=.  If this variable is
+  non-nil, the background tiles are downloaded and stored to disc for local
+  (fast) use.
 
-  Another intresting setting is =osm-default-zoom=.  This value denotes the
-  default zoom level to use if none is supplied.  I use 15, which shows street
-  names, tubes and foot paths already.
+  Be careful!  Caching can take hours on slow connections for bigger areas.  But
+  only once per zoom level though.  The area I use for my training diary uses
+  316 MB disc space currently (I just use three zoom levels).
 
+  Producing the images without caching is just as fast, but you will need to be
+  online when browsing the results.  In the future I hope to restrict the
+  caching to certain customizable areas.
 
 * What do the links look like?
 
@@ -56,7 +59,7 @@
 
 * Ideas
 
-  - Allow multiple tracks on one map.
+  - Allow for multiple tracks on one map.
   - Draw a legend.
 
 
