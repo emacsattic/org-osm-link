@@ -40,16 +40,17 @@ link description."
   :type  'string)
 
 
-(defun osm-org-link-store-link ()
-  "Store a link for a certain track."
-  (let* ((link (org-make-link
-                "track:"
-                (read-from-minibuffer "Coords: ")))
-         (desc (read-from-minibuffer "Desription: ")))
-    (org-store-link-props :type "track"
-                          :link link
-                          :desc desc)
-    link))
+(defun osm-org-compose-link ()
+  "Store a link for a certain track.
+The link is not validated currently but the .svg extension
+is added as needed."
+  (interactive)
+  (let* ((crds (read-from-minibuffer "Coords: "))
+         (file (read-from-minibuffer "Filename: "))
+         (desc (read-from-minibuffer "Desription: " file)))
+    (unless (string-match "\\.svg$" file)
+      (setq file (concat file ".svg")))
+    (insert "[[track:" crds file "][" desc "]]")))
 
 
 (defun osm-org-link-follow (path)
