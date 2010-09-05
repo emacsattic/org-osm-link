@@ -23,7 +23,9 @@
   : (require 'org-osm-link)
 
   After restarting Emacs (or evalutating the code above) you may customize the
-  new OSM features.
+  new OSM features:
+
+  : M-x customize-group RET osm-maps RET
 
   The most important feature is to adjust ist the caching behaviour.  This is
   currently controlled by the variable =osm-do-cache=.  If this variable is
@@ -44,15 +46,22 @@
   A link to a track looks like this:
 
   : [[track:((9.707032442092896 52.37033874553582)(9.711474180221558 52.375238282987))FILENAME.svg][DESCRIPTION]]
+  :                ^^^               ^^^
+  :             longitude          latitude
+
+  Negative latitudes are on the southern hemisphere.
 
   Once you click the link the image is created for you and shown in a new
-  buffer.  Existing tracks are re-used.
+  buffer.  Existing tracks are re-used.  You may provide a custom funciton to
+  show the images.  See the docs for the custom variable
+  =`osm-org-image-viewer-function=' in =org-osm-link.el=.
 
 
 * Aims
 
-  - Configure zoom levels and areas to cache the images for.  But still produce
-    SVGs with online tiles for tracks outside of those areas.
+  - Configure zoom levels and areas to cache the images for.  Produce SVGs with
+    online tiles for tracks outside of those areas, use the cached tile for
+    tracks in those areas.
   - Produce a draggable JavaScript map on HTML export.
   - Reuse the draggable JavaScript map to draw new tracks.
   - Allow for POIs.
@@ -64,6 +73,8 @@
 
   - Allow for multiple tracks on one map.
   - Draw a legend.
+  - Restrict images to a certain size and adjust the zoom level accordingly.
+  - HTML export: Produce thumbnails and link to bigger images.
 
 
 
