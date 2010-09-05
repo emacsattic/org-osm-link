@@ -2,7 +2,7 @@
 
 
 
-* org-osm --- OSM maps in Org mode
+* OSM maps in Emacs and Org mode
 
   =osm-maps.el= provides functions to produce SVG images for tracks.  Tracks are
   made of pairs of coordinates.
@@ -12,7 +12,7 @@
   1. Create an SVG image, that uses the tiles online on the openstreetmap.org
      servers.
   2. Download the tiles to a local directory and produce SVG images, that use
-     those local image tiles as background.
+     those local image tiles as background (caching).
 
 
 * Setup
@@ -25,7 +25,7 @@
   After restarting Emacs (or evalutating the code above) you may customize the
   new OSM features.
 
-  The most important feature to adjust ist the caching behaviour.  This is
+  The most important feature is to adjust ist the caching behaviour.  This is
   currently controlled by the variable =osm-do-cache=.  If this variable is
   non-nil, the background tiles are downloaded and stored to disc for local
   (fast) use.
@@ -38,13 +38,16 @@
   online when browsing the results.  In the future I hope to restrict the
   caching to certain customizable areas.
 
+
 * What do the links look like?
 
   A link to a track looks like this:
 
   : [[track:((9.707032442092896 52.37033874553582)(9.711474180221558 52.375238282987))FILENAME.svg][DESCRIPTION]]
 
-  Once click the link the image is created for you and shown in a new buffer.
+  Once you click the link the image is created for you and shown in a new
+  buffer.  Existing tracks are re-used.
+
 
 * Aims
 
