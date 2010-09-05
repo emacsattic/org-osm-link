@@ -288,17 +288,17 @@ current `default-directory'."
     (message "cmin cmax rmin rmax: %s %s %s %s" cmin cmax rmin rmax)
 
     (setq target
-          (concat
-           (if (stringp file-name)
-               (if (file-name-absolute-p file-name)
-                   file-name
-                 (concat defdir file-name))
+          (if (stringp file-name)
+              (if (file-name-absolute-p file-name)
+                  file-name
+                (concat defdir file-name))
+            (concat
              (if osm-default-cache-directory
                  (osm-area-file-name cmin rmin cmax rmax z)
                (concat defdir
                        (file-name-nondirectory
-                        (osm-area-file-name cmin rmin cmax rmax z)))))
-           ".svg"))
+                        (osm-area-file-name cmin rmin cmax rmax z))))
+             ".svg")))
 
     ;; Ensure we have the tiles:
     (osm-fetch-area cmin rmin cmax rmax z)

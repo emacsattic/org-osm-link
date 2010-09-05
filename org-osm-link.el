@@ -23,14 +23,12 @@
 ;; Add this to your emacs setup:
 ;;
 ;;   (require 'org-osm-link)
-;;   (osm-install-org-link-type)
 
 
 
 
 (require 'org)
 (require 'osm-maps)
-
 
 
 
@@ -46,23 +44,47 @@
                           :desc desc)
     link))
 
+
 (defun osm-org-link-follow (path)
   "Follow the Org mode link when clicked."
   (let* ((coords (osm-check-track path))
          (file (match-string 2 path))
-         (target (osm-draw-track coords file))
-         (file (file-name-nondirectory target)))
+         (target file))
+
+    (unless (file-exists-p target)
+      ;; if no file exists, the name will be made
+      ;; in osm-draw-track for us:
+      (setq target (file-relative-name (osm-draw-track coords file)))
+      (setq desc (or description target)))
+
+    (setq file (file-name-nondirectory target))
+
     (if (get-buffer file)
         (switch-to-buffer file)
       (find-file target))))
 
-(defun osm-org-link-export (path desc format)
+
+(defun osm-org-link-export (path description format)
   "Export a track from Org files.
 NOT YET IMPLEMENTED"
-  (message "path: %s" path)
-  (message "desc: %s" desc)
-  (message "format: %s" format)
-)
+  (let* ((coords (osm-check-track path))
+         (file (match-string 2 path))
+         (target file)
+         (desc (or description target)))
+
+    (unless (file-exists-p target)
+      ;; if no file exists, the name will be made
+      ;; in osm-draw-track for us:
+      (setq target (file-relative-name (osm-draw-track coords file)))
+      (setq desc (or description target)))
+
+    (cond
+     ((eq format 'html)
+      (format "<a href=\"%s\">%s</a>" (file-relative-name target) desc))
+     ((eq format 'latex)
+      ;; \includegraphics[width=10em]{nested-set_8c79dcf8fd4004ebfdf4d81910ad308c8b9f2ec8.png}
+      desc)
+     (t desc))))
 
 
 (defun osm-install-org-link-type ()
@@ -71,6 +93,10 @@ NOT YET IMPLEMENTED"
    "track"
    'osm-org-link-follow
    'osm-org-link-export))
+
+
+;; Finally install the link type:
+(osm-install-org-link-type)
 
 
 
