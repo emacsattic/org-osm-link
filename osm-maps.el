@@ -13,19 +13,36 @@
 ;;;
 
 
-(defcustom osm-default-zoom 15
-  "Default zoom level.")
+(defgroup osm-maps nil
+  "Render Tracks as SVG images."
+  :version "24"
+  :group   'multimedia)
 
-(defcustom osm-default-cache-directory nil
-  "Directory for the osm tile tree.
-Set this to nil, to use online map tiles on demand.
-Set it to a directory to cache the background tiles locally.
-E.g  \"~/.emacs.d/osm\".")
+(defcustom osm-default-zoom 15
+  "Default zoom level."
+  :group 'osm-maps
+  :type  'integer)
+
+(defcustom osm-do-cache nil
+  "Should the background tiles be stored on disc?
+The cache is never emptied and might grow quite big. Tiles
+will be stored in `osm-default-cache-directory'."
+  :group 'osm-maps
+  :type  'boolean)
+
+(defcustom osm-default-cache-directory "~/.emacs.d/osm"
+  "Directory for the osm tile tree. E.g  \"~/.emacs.d/osm\".
+Background tiles will be stored here on demand if you set
+`osm-do-cache' to a non-nil value."
+  :group 'osm-maps
+  :type  'directory)
 
 (defcustom osm-margin 5
   "Minimum distance of trackpoints from the edge of a map.
 This will be multiplied with the zoom level.  Hence 0 means
-no margin.")
+no margin."
+  :group 'osm-maps
+  :type  'integer)
 
 (defconst osmMaxLatitude 85.05112877
   "Polar areas with abs(latitude) bigger then 85.05112877 are clipped off.")
@@ -99,8 +116,8 @@ W and H the width and height in tiles respectively."
 (defun osm-fetch-tile (x y z)
   "Fetch a tile from an OpenStreetmap server.
 Return the absolut path to the image file or nil if
-`osm-default-cache-directory' is nil."
-  (if osm-default-cache-directory
+`osm-do-cache' is nil."
+  (if osm-do-cache
       (let* ((target-file (osm-cache-file-name x y z))
              (target-dir (file-name-directory target-file)))
         (make-directory target-dir t)
@@ -295,7 +312,7 @@ current `default-directory'."
                   file-name
                 (concat defdir file-name))
             (concat
-             (if osm-default-cache-directory
+             (if osm-do-cache
                  (osm-area-file-name cmin rmin cmax rmax z)
                (concat defdir
                        (file-name-nondirectory
@@ -335,7 +352,7 @@ current `default-directory'."
                 (setq x cmin)
                 (while (<= x cmax)
                   (setq tmp
-                        (if osm-default-cache-directory
+                        (if osm-do-cache
                             (concat "file://"
                                     (expand-file-name (osm-fetch-tile x y z)))
                           (osm-url-for-tile x y z)))

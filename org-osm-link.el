@@ -64,8 +64,7 @@
 
 
 (defun osm-org-link-export (path description format)
-  "Export a track from Org files.
-NOT YET IMPLEMENTED"
+  "Export a track from Org files."
   (let* ((coords (osm-check-track path))
          (file (match-string 2 path))
          (target (file-relative-name file))
