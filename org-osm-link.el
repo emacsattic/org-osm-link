@@ -34,11 +34,10 @@
 
 (defun osm-org-link-store-link ()
   "Store a link for a certain track."
-  (let (link desc)
-    (setq link (org-make-link
+  (let* ((link (org-make-link
                 "track:"
                 (read-from-minibuffer "Coords: ")))
-    (setq desc (read-from-minibuffer "Desription: "))
+         (desc (read-from-minibuffer "Desription: ")))
     (org-store-link-props :type "track"
                           :link link
                           :desc desc)
@@ -69,7 +68,7 @@
 NOT YET IMPLEMENTED"
   (let* ((coords (osm-check-track path))
          (file (match-string 2 path))
-         (target file)
+         (target (file-relative-name file))
          (desc (or description target)))
 
     (unless (file-exists-p target)
@@ -77,7 +76,6 @@ NOT YET IMPLEMENTED"
       ;; in osm-draw-track for us:
       (setq target (file-relative-name (osm-draw-track coords file)))
       (setq desc (or description target)))
-
     (cond
      ((eq format 'html)
       (format "<a href=\"%s\">%s</a>" (file-relative-name target) desc))
