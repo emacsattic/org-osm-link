@@ -16,9 +16,11 @@
 (defcustom osm-default-zoom 15
   "Default zoom level.")
 
-(defcustom osm-default-cache-directory "~/.emacs.d/osm"
+(defcustom osm-default-cache-directory nil
   "Directory for the osm tile tree.
-Set this to nil, to use online map tiles on demand.")
+Set this to nil, to use online map tiles on demand.
+Set it to a directory to cache the background tiles locally.
+E.g  \"~/.emacs.d/osm\".")
 
 (defcustom osm-margin 5
   "Minimum distance of trackpoints from the edge of a map.

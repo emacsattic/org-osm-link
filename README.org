@@ -15,6 +15,34 @@
      those local image tiles as background.
 
 
+* Setup
+
+  Just make sure =osm-maps.el= and =org-osm-link.el= are in your load-path, and add
+  this line to your setup (=.emacs= probably):
+
+  : (require 'org-osm-link)
+
+  The caching behaviour, if any, is currently controlled by the variable
+  =osm-default-cache-directory=.  If this variable is non-nil, the background
+  tiles are downloaded and stored to disc for local (fast) use.
+
+  Be careful!  This can take hours with slow connections for bigger areas.  But
+  only once per zoom level though.  The area I use for running uses 316 MB disc
+  space currently (I just use three zoom levels).
+
+  Another intresting setting is =osm-default-zoom=.  This value denotes the
+  default zoom level to use if none is supplied.  I use 15, which shows street
+  names, tubes and foot paths already.
+
+
+* What do the links look like?
+
+  A link to a track looks like this:
+
+  : [[track:((9.707032442092896 52.37033874553582)(9.711474180221558 52.375238282987))FILENAME.svg][DESCRIPTION]]
+
+  Once click the link the image is created for you and shown in a new buffer.
+
 * Aims
 
   - Configure zoom levels and areas to cache the images for.  But still produce
