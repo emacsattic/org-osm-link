@@ -320,6 +320,9 @@ current `default-directory'."
                         (osm-area-file-name cmin rmin cmax rmax z))))
              ".svg")))
 
+    (unless (file-directory-p (file-name-directory target))
+      (make-directory (file-name-directory target) t))
+
     ;; Ensure we have the tiles:
     (osm-fetch-area cmin rmin cmax rmax z)
     ;; calculate width and height:
