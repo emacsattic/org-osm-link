@@ -31,6 +31,14 @@
 (require 'osm-maps)
 
 
+(defcustom osm-org-export-html-format "<a href=\"%s\">%s</a>"
+  "Format for Org mode's XHTML export of OSM tracks.
+The format should contain two place holders.  The first one
+for the image's relative filename, the second one for the
+link description."
+  :group 'osm-maps
+  :type  'string)
+
 
 (defun osm-org-link-store-link ()
   "Store a link for a certain track."
@@ -77,7 +85,8 @@
       (setq desc (or description target)))
     (cond
      ((eq format 'html)
-      (format "<a href=\"%s\">%s</a>" (file-relative-name target) desc))
+      (format osm-org-export-html-format
+              (file-relative-name target) desc))
      ((eq format 'latex)
       ;; \includegraphics[width=10em]{nested-set_8c79dcf8fd4004ebfdf4d81910ad308c8b9f2ec8.png}
       desc)

@@ -31,14 +31,15 @@ will be stored in `osm-default-cache-directory'."
   :type  'boolean)
 
 (defcustom osm-default-cache-directory "~/.emacs.d/osm"
-  "Directory for the osm tile tree. E.g  \"~/.emacs.d/osm\".
+  "Directory for the osm tile tree.
 Background tiles will be stored here on demand if you set
-`osm-do-cache' to a non-nil value."
+`osm-do-cache' to a non-nil value.
+E.g  \"~/.emacs.d/osm\"."
   :group 'osm-maps
   :type  'directory)
 
 (defcustom osm-margin 5
-  "Minimum distance of trackpoints from the edge of a map.
+  "Minimum distance of trackpoints from the edge in pixels.
 This will be multiplied with the zoom level.  Hence 0 means
 no margin."
   :group 'osm-maps
