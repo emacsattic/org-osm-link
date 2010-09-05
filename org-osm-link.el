@@ -40,6 +40,19 @@ link description."
   :type  'string)
 
 
+(defcustom osm-org-image-viewer-function 'osm-org-show-track
+  "Function to call if a track image should be shown.
+The function is called with one argument: the absolute path
+to the image file.
+
+Here is an example for use with Gnome:
+  (setq osm-org-image-viewer-function
+        (lambda (file)
+          (call-process \"gnome-open\" nil 0 nil file)))"
+  :group 'osm-maps
+  :type  'function)
+
+
 (defun osm-org-compose-link ()
   "Store a link for a certain track.
 The link is not validated currently but the .svg extension
@@ -53,23 +66,24 @@ is added as needed."
     (insert "[[track:" crds file "][" desc "]]")))
 
 
+(defun osm-org-show-track (target)
+  (let ((file (file-name-nondirectory target)))
+    (if (get-buffer file)
+        (switch-to-buffer file)
+      (find-file target))))
+
+
 (defun osm-org-link-follow (path)
   "Follow the Org mode link when clicked."
   (let* ((coords (osm-check-track path))
          (file (match-string 2 path))
          (target file))
-
     (unless (file-exists-p target)
       ;; if no file exists, the name will be made
       ;; in osm-draw-track for us:
-      (setq target (file-relative-name (osm-draw-track coords file)))
-      (setq desc (or description target)))
-
-    (setq file (file-name-nondirectory target))
-
-    (if (get-buffer file)
-        (switch-to-buffer file)
-      (find-file target))))
+      (setq target osm-draw-track coords file))
+    (funcall osm-org-image-viewer-function
+             (file-truename target))))
 
 
 (defun osm-org-link-export (path description format)
