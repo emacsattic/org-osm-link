@@ -81,7 +81,7 @@ is added as needed."
     (unless (file-exists-p target)
       ;; if no file exists, the name will be made
       ;; in osm-draw-track for us:
-      (setq target osm-draw-track coords file))
+      (setq target (osm-draw-track coords file)))
     (funcall osm-org-image-viewer-function
              (file-truename target))))
 
@@ -92,7 +92,6 @@ is added as needed."
          (file (match-string 2 path))
          (target (file-relative-name file))
          (desc (or description target)))
-
     (unless (file-exists-p target)
       ;; if no file exists, the name will be made
       ;; in osm-draw-track for us:
@@ -105,7 +104,7 @@ is added as needed."
      ((eq format 'latex)
       ;; \includegraphics[width=10em]{nested-set_8c79dcf8fd4004ebfdf4d81910ad308c8b9f2ec8.png}
       desc)
-     (t desc))))
+     (t "ERSATZ"))));desc))))
 
 
 (defun osm-install-org-link-type ()
