@@ -31,7 +31,7 @@
 (require 'osm-maps)
 
 
-(defcustom osm-org-export-html-format "<a href=\"%s\">%s</a>"
+(defcustom osm-org-export-html-format "<a href=\"%s\" target=\"_blank\">%s</a>"
   "Format for Org mode's XHTML export of OSM tracks.
 The format should contain two place holders.  The first one
 for the image's relative filename, the second one for the
