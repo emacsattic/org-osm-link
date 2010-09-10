@@ -57,6 +57,10 @@
   =`osm-org-image-viewer-function=' in =org-osm-link.el=.
 
 
+* How to publish the maps with HTML?
+
+  See the docs for osm-publish-map-for-html.
+
 * Aims
 
   - Configure zoom levels and areas to cache the images for.  Produce SVGs with
@@ -66,8 +70,8 @@
   - Reuse the draggable JavaScript map to draw new tracks.
   - Allow for POIs.
   - Draw kilometer or mile markers.
-  - Configure a start and destination icons.
-
+  - Configure start and destination icons.
+  - Convert regions to maps.
 
 * Ideas
 

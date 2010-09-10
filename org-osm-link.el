@@ -115,6 +115,49 @@ is added as needed."
    'osm-org-link-export))
 
 
+(defun osm-publish-map-for-html (plist file pubdir)
+  "Publish existing maps for use with HTML files.
+For this to work, you'll need to set up a special publishing
+project in you `org-publish-project-alist'.  Here is an
+example:
+
+  (\"org-osm-maps\"
+   :base-directory \"~/org/training/\"
+   :publishing-directory \"~/public_html/org/training/\"
+   :recursive t
+   :base-extension \"svg\"
+   :osm-cache-directory \"~/org/img/OSM/\"
+   :publishing-function osm-publish-map-for-html)
+
+:osm-cache-directory denotes the path to link the background
+tiles to.  Not checked for existence."
+  (let* ((target (concat
+                  (file-name-as-directory pubdir)
+                  (file-name-nondirectory file)))
+         (old-path (concat
+                    "file://"
+                    (file-name-as-directory
+                     (expand-file-name osm-default-cache-directory))))
+         (new-path (concat
+                    ""
+                    (file-name-as-directory
+                     (file-relative-name
+                      (plist-get plist :osm-cache-directory)
+                      (file-name-directory file)))))
+         (ama auto-mode-alist))
+
+    (unwind-protect
+        (progn
+          (setq auto-mode-alist nil)
+          (with-temp-buffer
+            (insert-file file)
+            (beginning-of-buffer)
+            (replace-string old-path new-path)
+            (write-file target)))
+      ;; clean up forms:
+      (setq auto-mode-alist ama))
+))
+
 ;; Finally install the link type:
 (osm-install-org-link-type)
 
