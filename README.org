@@ -61,8 +61,20 @@
 
   See the docs for osm-publish-map-for-html.
 
-* Aims
 
+* Implemented features
+
+  - Download and caching of background tiles.
+  - Optionally use online resources as background tiles.
+  - Working Org links.  Click a =track:= link pops up a map of the track.  The map
+    is created if it does not exist yet (SVG files).
+  - HTML publishing of links and maps.
+  - Interactive creation of Org =track:= links.
+
+
+* Aims and ideas
+
+  - *Better documentation*.
   - Configure zoom levels and areas to cache the images for.  Produce SVGs with
     online tiles for tracks outside of those areas, use the cached tile for
     tracks in those areas.
@@ -71,10 +83,6 @@
   - Allow for POIs.
   - Draw kilometer or mile markers.
   - Configure start and destination icons.
-  - Convert regions to maps.
-
-* Ideas
-
   - Allow for multiple tracks on one map.
   - Draw a legend.
   - Restrict images to a certain size and adjust the zoom level accordingly.
