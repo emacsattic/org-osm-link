@@ -1,7 +1,6 @@
-;;;
-;; osm-maps.el
+;;; osm-maps.el  ---  Use maps from openstreetmap.org
 ;;
-;; Author and Copyright (c) 2010 Sebastian Rose, Hannover, Germany, sebastian_rose@gmx.de
+;; Author and Copyright (c) 2010 Sebastian Rose, Hannover, Germany
 ;;
 ;; Contact:
 ;;
@@ -11,6 +10,28 @@
 ;; Released under the GNU General Public License version 3
 ;; see: http://www.gnu.org/licenses/gpl-3.0.html
 ;;;
+
+;;; Commentary:
+;;
+;; Create SVG images from coordinates.  Currently uses PNG images from
+;; openstreetmap.org as background images.
+;;
+;;
+;; Installation
+;; ------------
+;;
+;; Make sure `osm-maps.el' is in your `load-path' and add this to your
+;; emacs setup:
+;;
+;;   (require 'osm-maps)
+;;
+;;
+;; Customization
+;; -------------
+;;
+;;  M-x customize-group RET osm-maps RET
+;;
+;;; Code:
 
 
 (defgroup osm-maps nil

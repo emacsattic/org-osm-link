@@ -1,7 +1,7 @@
-;;;
-;; org-osm-link.el
+;;; org-osm-link.el  ---  Org-links to OSM maps
 ;;
-;; Author and Copyright (c) 2010 Sebastian Rose, Hannover, Germany, sebastian_rose@gmx.de
+;; Author and Copyright (c) 2010 Sebastian Rose, Hannover, Germany
+;;
 ;;
 ;; Contact:
 ;;
@@ -10,20 +10,29 @@
 ;;
 ;; Released under the GNU General Public License version 3
 ;; see: http://www.gnu.org/licenses/gpl-3.0.html
+;;
+;; This file is NOT part of GNU Emacs.
+;;
 ;;;
 
+;;; Commentary:
+;;
 ;; Add a special Org link type, that, when clicked, opens an
 ;; SVG image of a certain track.
-
+;;
 ;; Example link:
-;;   [[track:((12.0399212 14.919293) (32.12394 15.342345))][Stupid track]]
-
+;;   [[track:((12.0399212 14.919293)(32.12394 15.342345))FILE.svg][Track]]
+;;
+;;
 ;; Installation
-
-;; Add this to your emacs setup:
+;; ------------
+;;
+;; Make sure `osm-maps.el' and `org-osm-link.el' are in your `load-path'
+;; and add this to your emacs setup:
 ;;
 ;;   (require 'org-osm-link)
-
+;;
+;;; Code:
 
 
 
