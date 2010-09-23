@@ -1,44 +1,40 @@
-;;; org-osm-link.el  ---  Org-links to OSM maps
-;;
-;; Author and Copyright (c) 2010 Sebastian Rose, Hannover, Germany
-;;
-;;
-;; Contact:
-;;
-;;    Phone: +49 (0) 173 - 83 93 4 17
-;;    Email: sebastian_rose gmx de
-;;
+;;; org-osm-link.el --- Org-links to OSM maps
+
+;; Copyright (c) 2010 Sebastian Rose, sebastian_rose gmx de
+;; Authors:    Sebastian Rose, sebastian_rose gmx de
+
 ;; Released under the GNU General Public License version 3
 ;; see: http://www.gnu.org/licenses/gpl-3.0.html
-;;
+
 ;; This file is NOT part of GNU Emacs.
-;;
-;;;
 
 ;;; Commentary:
-;;
+
 ;; Add a special Org link type, that, when clicked, opens an
 ;; SVG image of a certain track.
-;;
+
 ;; Example link:
 ;;   [[track:((12.0399212 14.919293)(32.12394 15.342345))FILE.svg][Track]]
-;;
-;;
+
+;; Each element of the list of coordinates in a link could hold a
+;; third value optionally.  The altitude (not used yet,
+;; see osm-maps.el).
+
 ;; Installation
 ;; ------------
-;;
+
 ;; Make sure `osm-maps.el' and `org-osm-link.el' are in your `load-path'
 ;; and add this to your emacs setup:
-;;
-;;   (require 'org-osm-link)
-;;
+;;     (require 'org-osm-link)
+
+
 ;;; Code:
-
-
 
 (require 'org)
 (require 'osm-maps)
 
+
+;;; Custom Variables
 
 (defcustom osm-org-export-html-format "<a href=\"%s\" target=\"_blank\">%s</a>"
   "Format for Org mode's XHTML export of OSM tracks.
@@ -72,6 +68,8 @@ Here is an example for use with Gnome:
   :group 'osm-maps
   :type  'function)
 
+
+;;; Functions
 
 (defun osm-org-compose-link ()
   "Store a link for a certain track.
@@ -131,14 +129,6 @@ is added as needed."
       (file-relative-name taget)))))
 
 
-(defun osm-install-org-link-type ()
-  "Install osm maps as link type in Org mode."
-  (org-add-link-type
-   "track"
-   'osm-org-link-follow
-   'osm-org-link-export))
-
-
 (defun osm-publish-map-for-html (plist file pubdir)
   "Publish existing maps for use with HTML files.
 For this to work, you'll need to set up a special publishing
@@ -182,9 +172,15 @@ tiles to.  Not checked for existence."
       (setq auto-mode-alist ama))
 ))
 
-;; Finally install the link type:
-(osm-install-org-link-type)
+
+;;; Finally install the link type
 
+(org-add-link-type
+ "track"
+ 'osm-org-link-follow
+ 'osm-org-link-export)
 
-
+
 (provide 'org-osm-link)
+
+;;; org-osm-link.el ends here

@@ -1,38 +1,35 @@
-;;; osm-maps.el  ---  Use maps from openstreetmap.org
-;;
-;; Author and Copyright (c) 2010 Sebastian Rose, Hannover, Germany
-;;
-;; Contact:
-;;
-;;    Phone: +49 (0) 173 - 83 93 4 17
-;;    Email: sebastian_rose gmx de
-;;
+;;; osm-maps.el --- Use maps from openstreetmap.org
+
+;; Copyright (c) 2010 Sebastian Rose, sebastian_rose gmx de
+;; Authors:    Sebastian Rose, sebastian_rose gmx de
+
 ;; Released under the GNU General Public License version 3
 ;; see: http://www.gnu.org/licenses/gpl-3.0.html
-;;;
+
+;; This file is NOT part of GNU Emacs.
+
+;; Released under the GNU General Public License version 3
+;; see: http://www.gnu.org/licenses/gpl-3.0.html
 
 ;;; Commentary:
-;;
+
 ;; Create SVG images from coordinates.  Currently uses PNG images from
 ;; openstreetmap.org as background images.
-;;
-;;
+
 ;; Installation
 ;; ------------
-;;
+
 ;; Make sure `osm-maps.el' is in your `load-path' and add this to your
 ;; emacs setup:
-;;
-;;   (require 'osm-maps)
-;;
-;;
+;;     (require 'osm-maps)
+
 ;; Customization
 ;; -------------
-;;
-;;  M-x customize-group RET osm-maps RET
-;;
-;;; Code:
 
+;;  M-x customize-group RET osm-maps RET
+
+
+;;; Code:
 
 (defgroup osm-maps nil
   "Render Tracks as SVG images."
@@ -84,6 +81,8 @@ will hold the rest of the string with all whitespace removed.
 
 See also: `osm-check-track'.")
 
+
+;;; Functions
 
 (defun osm-yx-to-xy-lol (lol)
   "Some application return lists with the values swapped:
@@ -465,5 +464,6 @@ See `osm-track-regexp' for more information."
       (error errstr track))))
 
 
-
+
 (provide 'osm-maps)
+;;; osm-maps.el ends here
