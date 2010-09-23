@@ -13,14 +13,14 @@
 
 ;;; Commentary:
 
-;; Create SVG images from coordinates.  Currently uses PNG images from
-;; openstreetmap.org as background images.
+;; Create SVG images from coordinates.  Currently uses PNG
+;; images from openstreetmap.org as background images.
 
 ;; Installation
 ;; ------------
 
-;; Make sure `osm-maps.el' is in your `load-path' and add this to your
-;; emacs setup:
+;; Make sure `osm-maps.el' is in your `load-path' and add
+;; this to your emacs setup:
 ;;     (require 'osm-maps)
 
 ;; Customization
@@ -64,7 +64,8 @@ no margin."
   :type  'integer)
 
 (defconst osmMaxLatitude 85.05112877
-  "Polar areas with abs(latitude) bigger then 85.05112877 are clipped off.")
+  "Polar areas with abs(latitude) bigger then 85.05112877 are
+clipped off.")
 
 (defvar osm-hosts (list "a" "b" "c")
   "List of hosts to get tiles from.
@@ -78,6 +79,9 @@ We balance the load on OSM servers.")
   "Match a valid track, i.e. a list of lists of coords.
  (match-string 1) will hold the track data, (match-string 2)
 will hold the rest of the string with all whitespace removed.
+Each element of the list of coordinates consists of up to
+three float values, two of which are required:  longitude
+and latitude.  The optional third element is the altitude.
 
 See also: `osm-check-track'.")
 

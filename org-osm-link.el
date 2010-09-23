@@ -16,15 +16,17 @@
 ;; Example link:
 ;;   [[track:((12.0399212 14.919293)(32.12394 15.342345))FILE.svg][Track]]
 
-;; Each element of the list of coordinates in a link could hold a
-;; third value optionally.  The altitude (not used yet,
-;; see osm-maps.el).
+;; An link's path consists of a list of coordinates and the
+;; filename.  As usual, the description part (\"Track\" in
+;; this case) is optional.
+;; See the documentation for `osm-track-regexp' for a
+;; description of the coordinates.
 
 ;; Installation
 ;; ------------
 
-;; Make sure `osm-maps.el' and `org-osm-link.el' are in your `load-path'
-;; and add this to your emacs setup:
+;; Make sure `osm-maps.el' and `org-osm-link.el' are in your
+;; `load-path' and add this to your emacs setup:
 ;;     (require 'org-osm-link)
 
 
