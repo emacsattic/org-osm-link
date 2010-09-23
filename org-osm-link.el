@@ -49,6 +49,17 @@ link description."
   :type  'string)
 
 
+(defcustom osm-org-export-LaTeX-format
+  "\\href{file://%F}{%d}"
+  "Format used to export a track: link to LaTeX.
+Possible replacements:
+ \"%F\"  -  absolute path to the image
+ \"%f\"  -  relative path to the image
+ \"%d\"  -  link description or the image's relative path"
+  :group 'osm-maps
+  :type  'string)
+
+
 (defcustom osm-org-image-viewer-function 'osm-org-show-track
   "Function to call if a track image should be shown.
 The function is called with one argument: the absolute path
@@ -111,9 +122,13 @@ is added as needed."
       (format osm-org-export-html-format
               (file-relative-name target) desc))
      ((eq format 'latex)
-      ;; \includegraphics[width=10em]{nested-set_8c79dcf8fd4004ebfdf4d81910ad308c8b9f2ec8.png}
-      desc)
-     (t "ERSATZ"))));desc))))
+      (org-replace-escapes
+       osm-org-export-LaTeX-format
+       (list (cons "%f" target)
+             (cons "%F" (expand-file-name target))
+             (cons "%d" desc))))
+     (t
+      (file-relative-name taget)))))
 
 
 (defun osm-install-org-link-type ()

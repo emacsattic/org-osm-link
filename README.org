@@ -16,7 +16,9 @@
   - Working Org links.  The link type is =track:=.  Clicking a =track:= link pops up
     a map of the track.  The map is created if it does not exist yet.
   - Interactive creation of Org =track:= links.
-  - HTML publishing of links and maps.
+  - HTML export of links and maps.  Maps will be modified to work in the
+    publishing directory and are referenced through hyperlinks (customizable).
+  - LaTeX export of links.  Maps will be referenced by a hyperlink.
 
 
 * Setup
