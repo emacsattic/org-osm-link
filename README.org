@@ -4,8 +4,9 @@
 
 * OSM maps in Emacs and Org mode
 
-  =osm-maps.el= provides functions to produce SVG images for tracks.  Tracks are
-  made of pairs of coordinates.
+  =osm-maps.el= provides functions to produce SVG images with PNG map tiles as
+  backgrounds and your tracks on top of them.  Tracks are made of lists of pairs
+  of coordinates.
 
 
 * Implemented features
