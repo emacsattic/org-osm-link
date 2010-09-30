@@ -271,7 +271,7 @@ y-number of the tile that pixel is found on as '(pixel tileY)."
 
 
 (defun osm-row-for-y (y zoom)
-  "Return the column index that contains Y (a pixel)."
+  "Return the row index that contains Y (a pixel)."
   (lsh y -8))
 
 

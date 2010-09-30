@@ -128,7 +128,7 @@ is added as needed."
              (cons "%F" (expand-file-name target))
              (cons "%d" desc))))
      (t
-      (file-relative-name taget)))))
+      (file-relative-name target)))))
 
 
 (defun osm-publish-map-for-html (plist file pubdir)
