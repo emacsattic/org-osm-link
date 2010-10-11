@@ -365,15 +365,12 @@ current `default-directory'."
               (write-file target t)
               (fundamental-mode)
               (insert
-               "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\" ?>\n"
+               "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
                "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n"
-               "<svg\n"
-               "	xmlns:svg=\"http://www.w3.org/2000/svg\"\n"
-               "	xmlns=\"http://www.w3.org/2000/svg\"\n"
-               "	xmlns:xlink=\"http://www.w3.org/1999/xlink\"\n"
-               "	version=\"1.1\"\n"
-               "	width=\""   (format "%d" w)  "\"\n"
-               "	height=\""  (format "%d" h)  "\">\n"
+               "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\""
+               " version=\"1.1\""
+               " width=\""   (format "%d" w)  "\""
+               " height=\""  (format "%d" h)  "\">\n"
                " <g id=\"layer1\">\n")
               (setq y rmin)
               (while (<= y rmax)
@@ -385,19 +382,15 @@ current `default-directory'."
                                     (expand-file-name (osm-fetch-tile x y z)))
                           (osm-url-for-tile x y z)))
                   (insert
-                   "  <image\n"
-                   "		xlink:href=\"" tmp "\"\n"
-                   (format "		x=\"%d\"\n" (- (lsh (- x cmin) 8) mleft))
-                   (format "		y=\"%d\"\n" (- (lsh (- y rmin) 8) mtop))
-                   "		width=\"256\"\n"
-                   "		height=\"256\" />\n")
+                   "  <image xlink:href=\"" tmp "\""
+                   (format " x=\"%d\"" (- (lsh (- x cmin) 8) mleft))
+                   (format " y=\"%d\"" (- (lsh (- y rmin) 8) mtop))
+                   " width=\"256\" height=\"256\" />\n")
                   (setq x (+ x 1)))
                 (setq y (+ y 1)))
 
               ;; Draw the track
-              (insert
-               "  <path\n"
-               "		d=\"M")
+              (insert "  <path d=\"M")
               (setq tmp t)
               (mapc
                (lambda (c)
@@ -410,12 +403,11 @@ current `default-directory'."
                    (setq tmp nil)
                    (insert " L")))
                points)
-              (insert "\"\n" ;; end of d value.
-                      "		style=\"fill:none;"
-                      "stroke:#ff0000;stroke-width:"
-                      (format "%d" (if (<= z 10) 1.5 (+ 1.5 (* 0.6 (- z 10)))))
-                      ";stroke-linecap:round;stroke-linejoin:round;"
-                      "stroke-miterlimit:4;stroke-opacity:0.65;stroke-dasharray:none\" />\n")
+              (insert
+               "\" style=\"fill:none;stroke:#ff0000;stroke-width:"
+               (format "%d" (if (<= z 10) 1.5 (+ 1.5 (* 0.6 (- z 10)))))
+               ";stroke-linecap:round;stroke-linejoin:round;"
+               "stroke-miterlimit:4;stroke-opacity:0.65;stroke-dasharray:none\" />\n")
 
               (insert
                " </g>\n"
