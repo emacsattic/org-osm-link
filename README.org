@@ -22,7 +22,8 @@
   - LaTeX export of links.  Maps will be referenced by a hyperlink.
   - Import org track links from GPX files semi-interactively.
   - Export org track links to GPX.  Either the next link or all links in a
-    region.
+    region.  Each track is added only once, provided track-filename and choords
+    match.
 
 
 * Setup

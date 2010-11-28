@@ -144,7 +144,8 @@ the next org track link."
                       (let ((desc (match-string 5))
                             (trk (osm-check-track (match-string 3))))
                         ;; Should we use the description part of the link instead?
-                        (push trk tracks))))
+                        (unless (member trk tracks)
+                          (push trk tracks)))))
 
                 (if (= 1 (length tracks))
                     (message "1 track found.")
