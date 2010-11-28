@@ -75,7 +75,7 @@ We balance the load on OSM servers.")
   "Current offset in osm-hosts.")
 
 (defconst osm-track-regexp              ; DO NOT CHANGE without looking in osm-check-track!
-  "^[[:space:]]*\\([[:alpha:][:digit:]-._/\\+%]*\\)?[[:space:]]*'?\\((\\(?:[[:space:]]*([[:space:]]*[0-9]+\\(?:.[0-9]*\\)?[[:space:]]+[0-9]+\\(?:.[0-9]*\\)?[[:space:]]*)\\)+[[:space:]]*)\\)[[:space:]]*\\([[:alpha:][:digit:]-._/\\+%]*\\)?[[:space:]]*"
+  "[[:space:]]*\\([[:alnum:]-._/\\+%]*\\)?[[:space:]]*'?\\((\\(?:[[:space:]]*([[:space:]]*[0-9]+\\(?:.[0-9]*\\)?[[:space:]]+-?[0-9]+\\(?:.[0-9]*\\)?[[:space:]]*)\\)+[[:space:]]*)\\)[[:space:]]*\\([[:alnum:]-._/\\+%]*\\)?[[:space:]]*"
   "Match a valid track, i.e. a list of lists of coords.
  (match-string 2) will hold the track data, (match-string 1)
 and (match-string 3) will hold the rest of the string with
@@ -83,6 +83,8 @@ all whitespace removed.
 Each element of the list of coordinates consists of up to
 three float values, two of which are required:  longitude
 and latitude.  The optional third element is the altitude.
+Latitude may by negativ for coordinates on the southern
+hemisphere.
 
 See also: `osm-check-track'.")
 
@@ -455,7 +457,7 @@ See `osm-track-regexp' for more information."
           (str (if (stringp track)
                    track
                  (format "%s" track))))
-      (if (string-match osm-track-regexp str)
+      (if (string-match (concat "^" osm-track-regexp) str)
           (list
            (if (< 0 (length (match-string 1 str)))
                (match-string 1 str)
@@ -501,6 +503,42 @@ Returns a list of all tracks found in that file:
               )))))
     tracks))
 
+
+(defun osm-tracks-to-gpx (tracks &optional gpx-filename)
+  "Write a list of tracks, each of which is a list as returned
+from `osm-check-track', to a GPX file."
+  (with-temp-buffer
+    (insert
+     "<?xml version=\"1.0\"?>\n"
+     "<gpx version=\"1.0\" creator=\"Viking -- http://viking.sf.net/\"\n"
+     "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n"
+     "xmlns=\"http://www.topografix.com/GPX/1/0\"\n"
+     "xsi:schemaLocation=\"http://www.topografix.com/GPX/1/0 http://www.topografix.com/GPX/1/0/gpx.xsd\">\n")
+    (mapc (lambda (trk)
+            (insert
+             "<trk>\n"
+             " <name>" (elt trk 0) "</name>\n"
+             " <desc></desc>\n"
+             " <trkseg>\n")
+            (mapc (lambda (c)
+                    (insert
+                     "  <trkpt lon=\""
+                     (format "%s" (car c)) "\" lat=\""
+                     (format "%s" (elt c 1)) "\"></trkpt>\n"))
+                  (elt trk 1))
+            (insert
+             "  </trkseg>\n"
+             "</trk>\n")
+            )
+          tracks)
+
+    (insert
+     "</gpx>\n")
+
+    (let ((f (or gpx-filename
+                 (read-file-name "GPX-file: "))))
+      (write-file f))
+    ))
 
 
 

@@ -110,6 +110,51 @@ is added as needed."
           tracks)))
 
 
+
+(defun osm-org-track-links-to-gpx (&optional gpx-file)
+  "Put track found in org track link after point into a GPX
+file.
+If region is active, put all the tracks found in that region
+into the GPX file.  If point is not inside a link, search for
+the next org track link."
+  (interactive)
+  (let ((tracks '())
+        reg beg end)
+    (save-excursion
+      (save-restriction
+        (save-match-data
+          (unwind-protect
+              (progn
+                (if (use-region-p)
+                    (setq beg (region-beginning)
+                          end (region-end)
+                          reg t)
+                  (if (not (search-forward-regexp
+                            org-bracket-link-analytic-regexp))
+                      (error "No \"track:\" link found.")
+                    (setq beg (match-beginning 0)
+                          end (match-end 0))))
+
+                (narrow-to-region beg end)
+                (goto-char beg)
+
+                (while (search-forward-regexp
+                        org-bracket-link-analytic-regexp end t)
+                  (if (string= "track" (match-string 2))
+                      (let ((desc (match-string 5))
+                            (trk (osm-check-track (match-string 3))))
+                        ;; Should we use the description part of the link instead?
+                        (push trk tracks))))
+
+                (if (= 1 (length tracks))
+                    (message "1 track found.")
+                  (message "%s tracks found." (length tracks)))
+                (osm-tracks-to-gpx tracks)
+                )
+            (widen)
+            ))))))
+
+
 (defun osm-org-show-track (target)
   (let ((file (file-name-nondirectory target)))
     (if (get-buffer file)

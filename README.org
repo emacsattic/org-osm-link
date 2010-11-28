@@ -21,6 +21,8 @@
     publishing directory and are referenced through hyperlinks (customizable).
   - LaTeX export of links.  Maps will be referenced by a hyperlink.
   - Import org track links from GPX files semi-interactively.
+  - Export org track links to GPX.  Either the next link or all links in a
+    region.
 
 
 * Setup
@@ -54,10 +56,12 @@
 * What do the links look like?
 
   A link to a track looks like this:
-
   : [[track:((9.707032442092896 52.37033874553582)(9.711474180221558 52.375238282987))FILENAME.svg][DESCRIPTION]]
   :                ^^^               ^^^
   :             longitude          latitude
+  ...or this (filename first):
+  : [[track:FILENAME.svg((9.707032442092896 52.37033874553582)(9.711474180221558 52.375238282987))][DESCRIPTION]]
+
 
   Negative latitudes are on the southern hemisphere.
 
