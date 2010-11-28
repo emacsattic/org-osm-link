@@ -460,6 +460,43 @@ See `osm-track-regexp' for more information."
       (error errstr track))))
 
 
+(defun osm-gpx-to-tracks (filename)
+  "Parse a valid GPX file and return a track.
+
+Returns a list of all tracks found in that file:
+'((\"name\" (lon lat) (lon lat)...) (\"name2\" (lon lat) (lon lat)...))"
+  (let ((trk-beg 0)
+        (tracks '())
+        (case-fold-search t))
+    (save-excursion
+      (save-match-data
+        (with-temp-buffer
+          (insert-file filename)
+          (goto-char (point-min))
+          (while (setq trk-beg (search-forward "<trk>" nil t))
+            (let ((trk-end (search-forward "</trk>" nil t))
+                  (trk '()))
+              (goto-char trk-beg)
+              (when (search-forward-regexp "<name>\\([^<]*\\)</name>" trk-end t)
+                (push (match-string-no-properties 1) trk)
+                (goto-char trk-beg))
+
+              (while (search-forward-regexp
+                      (concat
+                       "<trkpt[[:space:]]+"
+                       "\\(lat\\|lon\\)=\\(\"\\|'\\)\\([[:digit:]]+\\.[[:digit:]]+\\)\\2[[:space:]]+"
+                       "\\(lat\\|lon\\)=\\(\"\\|'\\)\\([[:digit:]]+\\.[[:digit:]]+\\)\\5[^>]*>")
+                      trk-end t)
+                (if (string= "lon" (match-string-no-properties 1))
+                    (push (list (match-string-no-properties 3)
+                                (match-string-no-properties 6)) trk)
+                  (push (list (match-string-no-properties 6)
+                              (match-string-no-properties 3)) trk)))
+              (push (reverse trk) tracks)
+              )))))
+    tracks))
+
+
 
 (provide 'osm-maps)
 ;;; osm-maps.el ends here

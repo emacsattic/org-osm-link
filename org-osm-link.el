@@ -70,20 +70,44 @@ Here is an example for use with Gnome:
   :group 'osm-maps
   :type  'function)
 
+
+(defcustom osm-org-track-file-prefix ""
+  "This will be used as prefix for track filenames.
+You might or might not set this to an existing directory."
+  :group 'osm-maps
+  :type  'string)
+
+
 
 ;;; Functions
 
-(defun osm-org-compose-link ()
+(defun osm-org-compose-link (&optional coords target-file-name)
   "Store a link for a certain track.
 The link is not validated currently but the .svg extension
 is added as needed."
   (interactive)
-  (let* ((crds (read-from-minibuffer "Coords: "))
-         (file (read-from-minibuffer "Filename: "))
-         (desc (read-from-minibuffer "Desription: " file)))
+  (let* ((crds (or coords (read-from-minibuffer "Coords: ")))
+         (file (read-from-minibuffer
+                "Filename: "
+                (concat osm-org-track-file-prefix target-file-name)))
+         (desc (or description (read-from-minibuffer "Desription: " file))))
     (unless (string-match "\\.svg$" file)
       (setq file (concat file ".svg")))
     (insert "[[track:" crds file "][" desc "]]")))
+
+
+(defun osm-org-gpx-to-links (&optional gpx-file)
+  "Read tracks from a GPX file and osm org links interactively."
+  (interactive "fGPX-File: ")
+  (let ((tracks (osm-gpx-to-tracks gpx-file)))
+    (message "tracks: %s" tracks)
+    (mapc (lambda (trk)
+            (let ((name (car trk))
+                  (coords (cdr trk)))
+              (message "coords: %s" coords)
+              (osm-org-compose-link (format "'%s" coords) name)
+              (insert "\n")))
+          tracks)))
 
 
 (defun osm-org-show-track (target)
