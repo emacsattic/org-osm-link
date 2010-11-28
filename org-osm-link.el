@@ -93,11 +93,11 @@ is added as needed."
          (desc (or description (read-from-minibuffer "Desription: " file))))
     (unless (string-match "\\.svg$" file)
       (setq file (concat file ".svg")))
-    (insert "[[track:" crds file "][" desc "]]")))
+    (insert "[[track:" file crds "][" desc "]]")))
 
 
 (defun osm-org-gpx-to-links (&optional gpx-file)
-  "Read tracks from a GPX file and osm org links interactively."
+  "Read tracks from a GPX file and create osm org links interactively."
   (interactive "fGPX-File: ")
   (let ((tracks (osm-gpx-to-tracks gpx-file)))
     (message "tracks: %s" tracks)
@@ -119,8 +119,9 @@ is added as needed."
 
 (defun osm-org-link-follow (path)
   "Follow the Org mode link when clicked."
-  (let* ((coords (osm-check-track path))
-         (file (match-string 2 path))
+  (let* ((trk (osm-check-track path))
+         (coords (elt trk 1))
+         (file (elt trk 0))
          (target file))
     (unless (file-exists-p target)
       ;; if no file exists, the name will be made
@@ -132,8 +133,9 @@ is added as needed."
 
 (defun osm-org-link-export (path description format)
   "Export a track from Org files."
-  (let* ((coords (osm-check-track path))
-         (file (match-string 2 path))
+  (let* ((trk (osm-check-track path))
+         (coords (elt trk 1))
+         (file (car trk))
          (target (file-relative-name file))
          (desc (or description target)))
     (unless (file-exists-p target)

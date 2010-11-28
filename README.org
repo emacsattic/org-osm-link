@@ -20,6 +20,7 @@
   - HTML export of links and maps.  Maps will be modified to work in the
     publishing directory and are referenced through hyperlinks (customizable).
   - LaTeX export of links.  Maps will be referenced by a hyperlink.
+  - Import org track links from GPX files semi-interactively.
 
 
 * Setup
@@ -64,6 +65,17 @@
   buffer.  Existing tracks are re-used.  You may provide a custom funciton to
   show the images.  See the docs for the custom variable
   =`osm-org-image-viewer-function=' in =org-osm-link.el=.
+
+
+* How to insert track links easily
+
+  There are two ways to insert links appart from adding them by hand.
+
+  1. =M-x osm-org-compose-link= asks for the list of coords, the filename and the
+     link description and inserts the link at point.
+
+  2. =M-x osm-org-gpx-to-links= asks for a gpx file to read and inserts all the
+     tracks found in that file interactively.
 
 
 * How to publish the maps with HTML?

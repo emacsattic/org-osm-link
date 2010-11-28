@@ -75,10 +75,11 @@ We balance the load on OSM servers.")
   "Current offset in osm-hosts.")
 
 (defconst osm-track-regexp              ; DO NOT CHANGE without looking in osm-check-track!
-  "^'?\\((\\(?:[[:space:]]*([0-9]+\\(?:.[0-9]*\\)?[[:space:]]+[0-9]+\\(?:.[0-9]*\\)?[[:space:]]*)\\)+[[:space:]]*)\\)[[:space:]]*\\(\\(?:[^)[:space:]]\\)*\\)?[[:space:]]*"
+  "^[[:space:]]*\\([[:alpha:][:digit:]-._/\\+%]*\\)?[[:space:]]*'?\\((\\(?:[[:space:]]*([[:space:]]*[0-9]+\\(?:.[0-9]*\\)?[[:space:]]+[0-9]+\\(?:.[0-9]*\\)?[[:space:]]*)\\)+[[:space:]]*)\\)[[:space:]]*\\([[:alpha:][:digit:]-._/\\+%]*\\)?[[:space:]]*"
   "Match a valid track, i.e. a list of lists of coords.
- (match-string 1) will hold the track data, (match-string 2)
-will hold the rest of the string with all whitespace removed.
+ (match-string 2) will hold the track data, (match-string 1)
+and (match-string 3) will hold the rest of the string with
+all whitespace removed.
 Each element of the list of coordinates consists of up to
 three float values, two of which are required:  longitude
 and latitude.  The optional third element is the altitude.
@@ -443,28 +444,32 @@ expected to be lists of lists,  each sub-list a list of two
 float values.  Strings are expected to be a valid elisp
 representation of such a lol.
 
-This function returns the lol as elisp object suitable as
-parameter for `osm-draw-track' and similar.
-
-`match-string' 1 will hold the track data as string,
-`match-string' 2 will hold the rest of the string with all
-whitespace removed.
+This function returns a list with the car being the name of
+the track, (elt list 1) the lol as elisp object suitable as
+parameter for `osm-draw-track' and similar.  The name might
+be empty, all whitespace is removed.
 
 See `osm-track-regexp' for more information."
-  (let ((errstr "The track does not look like valid coords: %s")
-        (str (if (stringp track)
-                 track
-               (format "%s" track))))
-    (if (string-match osm-track-regexp str)
-        (read (match-string 1 str))
-      (error errstr track))))
+  (save-match-data
+    (let ((errstr "The track does not look like valid coords: %s")
+          (str (if (stringp track)
+                   track
+                 (format "%s" track))))
+      (if (string-match osm-track-regexp str)
+          (list
+           (if (< 0 (length (match-string 1 str)))
+               (match-string 1 str)
+             (match-string 3 str))
+           (read (match-string 2 str)))
+        (error errstr track)))))
 
 
 (defun osm-gpx-to-tracks (filename)
-  "Parse a valid GPX file and return a track.
+  "Parse a valid GPX file and return a list of tracks.
 
 Returns a list of all tracks found in that file:
 '((\"name\" (lon lat) (lon lat)...) (\"name2\" (lon lat) (lon lat)...))"
+;; TODO: use xml-... functions to parse the gpx file
   (let ((trk-beg 0)
         (tracks '())
         (case-fold-search t))
@@ -495,6 +500,7 @@ Returns a list of all tracks found in that file:
               (push (reverse trk) tracks)
               )))))
     tracks))
+
 
 
 
