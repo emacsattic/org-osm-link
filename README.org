@@ -46,7 +46,7 @@
 
   Be careful!  Caching can take hours on slow connections for bigger areas.  But
   only once per zoom level though.  The area I use for my training diary uses
-  316 MB disc space currently (I just use three zoom levels).
+  26 MB disc space currently for tiles with zoom-level 15.
 
   Producing the images without caching is just as fast, but you will need to be
   online when browsing the results.  Also, you'll need to be patient when
