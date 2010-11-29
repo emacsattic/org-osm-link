@@ -480,7 +480,7 @@ Returns a list of all tracks found in that file:
         (with-temp-buffer
           (insert-file filename)
           (goto-char (point-min))
-          (while (setq trk-beg (search-forward "<trk>" nil t))
+          (while (setq trk-beg (search-forward-regexp "<trk\\(?:[[:space:]]+[^>]*\\)?>" nil t))
             (let ((trk-end (search-forward "</trk>" nil t))
                   (trk '()))
               (goto-char trk-beg)
