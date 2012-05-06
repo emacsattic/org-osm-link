@@ -19,6 +19,8 @@ my $track_len   = undef;                  # Try to find the len in track's name.
 my $headline    = undef;                  # Restrict to headline.
 my $subtree     = undef;                  # Restrict to all tracks in subtree.
 my $help        = undef;                  # Show help?
+my $info        = undef;                  # Just print informations about
+                                          # tracks.
 
 my $result = GetOptions (
     "out|output|o=s"    => \$output_file,
@@ -28,6 +30,7 @@ my $result = GetOptions (
     "heading=s"         => \$headline,
     "subtree=s"         => \$subtree,
     "help|h"            => \$help,
+    "info|i"            => \$info,
     );
 
 
@@ -35,6 +38,10 @@ if($help) {
     help();
     exit 0;
 }
+if($info) {
+    $format = "info";
+}
+
 
 
 my $IN = undef;
@@ -87,6 +94,9 @@ given( $format ) {
     when('gpx') {
         $formatter = GPXFormatter->new($OUT);
     }
+    when('info') {
+        $formatter = INFOFormatter->new($OUT);
+    }
     default {
         $formatter = Formatter->new($OUT);
     }
@@ -103,20 +113,22 @@ while( <$IN> )
     my($name, @long_lat);
     if( /^\s*\[\[                                 # Start of link
          track:
-         \s*[^\(]*                                # Filename
+         \s*[^\(]*                                # Filename preceeding coords
          \s*\(                                    # Paren starting coords
          ([^\]]*)                                 # Pairs of (long lat)
          \s*\)                                    # Paren ending coords
+         \s*[^\)]*                                # Filename following coords
          \]                                       # End of first link part
          \[                                       # Start second link part
          ([^\]]*)                                 # Name of the track
          \]\]                                     # End of link
         /iox ) {
-        $name = $2;
+        $name = basename $2;
         @long_lat = split(/\s*\)\s*\(\s*/o, $1);
         # Cut of the remaining parens:
         $long_lat[0] =~ s/\(\s*//;
         $long_lat[$#long_lat] =~ s/\s*\)//;
+        # print $name, "\n";
         # print join(",\n", @long_lat);
         $formatter->writeTrack($name, \@long_lat);
     }
@@ -181,11 +193,75 @@ sub leadOut {
 1;
 
 
-package GPXFormatter;
 
+package INFOFormatter;
 
 use base "Formatter";
 
+sub new {
+    my($class, $file_handle) = @_;
+    my $self = $class->SUPER::new($file_handle);
+    $self->{data_format} = "| %-32s | %7s | %-21s | %-21s | %-21s | %-21s |\n";
+    $self->{hline} = sprintf(
+        "+%-34s+%9s+%23s+%23s+%23s+%23s+\n",
+        "-" x 34,
+        "-" x 9,
+        "-" x 23, "-" x 23, "-" x 23, "-" x 23
+        );
+    $self->{headline} = sprintf $self->{data_format},
+    "Name", "Coords",
+    "Farthest North", "Farthest East", "Farthest South", "Farthest West";
+    $self->{n} = -90;
+    $self->{s} = 90;
+    $self->{e} = -360.0;
+    $self->{w} = 360.0;
+    $self->{points} = 0;
+    bless $self, $class;
+}
+
+sub leadIn {
+    my $self = shift;
+    printf { $self->{FH} } $self->{headline};
+    print { $self->{FH} } $self->{hline};
+}
+
+sub writeTrack {
+    my($self, $track_name, $long_lat) = @_;
+    my $n = -90;
+    my $s = 90;
+    my $e = -360.0;
+    my $w = 360.0;
+    for(@{$long_lat}) {
+        my($long, $lat) = split(" ");
+        if($long < $w) { $w = $long; }
+        if($long > $e) { $e = $long; }
+        if($lat  < $s) { $s = $lat; }
+        if($lat  > $n) { $n = $lat; }
+        # And the global minimums and maximums:
+        if($long < $self->{w}) { $self->{w} = $long; }
+        if($long > $self->{e}) { $self->{e} = $long; }
+        if($lat  < $self->{s}) { $self->{s} = $lat; }
+        if($lat  > $self->{n}) { $self->{n} = $lat; }
+    }
+    printf { $self->{FH} } $self->{data_format},
+    $track_name, scalar(@{$long_lat}), $n, $e, $s, $w;
+    $self->{points} += scalar(@{$long_lat});
+}
+
+sub leadOut {
+    my $self = shift;
+    print { $self->{FH} } $self->{hline};
+    printf { $self->{FH} } $self->{data_format},
+    "Total:", $self->{points}, $self->{n}, $self->{e}, $self->{s}, $self->{w};
+}
+
+1;
+
+
+
+package GPXFormatter;
+
+use base "Formatter";
 
 sub new {
     my($class, $file_handle) = @_;
@@ -225,7 +301,6 @@ sub leadOut {
     print { $self->{FH} } "</gpx>\n";
 }
 
-
 1;
 
 
@@ -237,7 +312,7 @@ __DATA__
 NAME:   %program_name%
 
 USAGE:
-        %program_name% [ -o FILENAME ] [ -f FORMAT ] filename.org
+        %program_name% [ -o FILENAME ] [ -f FORMAT ] [ -i ] filename.org
 
         cat filename.org | %program_name%
 
@@ -254,6 +329,10 @@ OPTIONS:
 
         -output | -o  FILENAME  Write Tracks to file FILENAME.  Dies if FILENAME
                                 already exists.
+
+        -info | -i              Just print inforamtions about the tracks found
+                                such as name, farthes point north, east south
+                                and west.
 
 AUTHOR:
                    Author and Copyright © 2011-2012 Sebastian Rose

@@ -510,7 +510,7 @@ from `osm-check-track', to a GPX file."
   (with-temp-buffer
     (insert
      "<?xml version=\"1.0\"?>\n"
-     "<gpx version=\"1.0\" creator=\"Viking -- http://viking.sf.net/\"\n"
+     "<gpx version=\"1.0\" creator=\"emacs, orgmode http://ormode.org, osm-org https://github.com/SebastianRose/org-osm\"\n"
      "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n"
      "xmlns=\"http://www.topografix.com/GPX/1/0\"\n"
      "xsi:schemaLocation=\"http://www.topografix.com/GPX/1/0 http://www.topografix.com/GPX/1/0/gpx.xsd\">\n")

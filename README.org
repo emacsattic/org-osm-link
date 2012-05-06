@@ -88,9 +88,9 @@
   See the docs for osm-publish-map-for-html.
 
 * Can I export osm-org track: links to GPX?
-  Yes.  From Emacs use
+  Yes.  From within Emacs use
   : M-X osm-org-track-links-to-gpx
-  which work on the track: link point is in or the next link found.  If a region
+  which works on the track: link point is in or the next link found.  If a region
   is active, export all track: links found in there to a single GPX file.
 
   From the command line, use =org-track-extract.pl= like this:
