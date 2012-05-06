@@ -87,6 +87,14 @@
 
   See the docs for osm-publish-map-for-html.
 
+* Can I export osm-org track: links to GPX?
+  Yes.  Use =org-track-extract.pl= like this:
+  : perl org-track-extract.pl -f gpx path-to-file.org
+  Will extract all track: links in =path-to-file.org= and write a complete GPX
+  file to stdout.
+
+  For more information try
+  : perl org-track-extract.pl -h
 
 * Aims and ideas
 
