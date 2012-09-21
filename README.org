@@ -53,7 +53,6 @@
   visiting maps that use online resources (background tiles on OSM servers).  In
   the future I hope to restrict the caching to certain customizable areas.
 
-
 * What do the links look like?
 
   A link to a track looks like this:
@@ -100,6 +99,19 @@
 
   For more information try
   : perl org-track-extract.pl -h
+
+* Caveats
+
+*** Crashes caused by looong lines in tooltips
+    On my system, emacs crashes every now an then when I move the mous over a
+    track link.  This is because of a bug with very long lines in tooltips.  I
+    can avoid tooltips per file by adding these lines to the end of my training
+    diaries:
+    #+begin_example
+      # Local Variables:
+      # eval: (tooltip-mode -1)
+      # End:
+    #+end_example
 
 * Aims and ideas
 
