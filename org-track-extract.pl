@@ -13,7 +13,9 @@ my $program_name = basename($0);
 
 ## Options:
 my $format      = undef;                  # Output format.
+my $describe    = undef;                  # Describe the selected output format.
 my $output_file = undef;                  # Output GPX to this file.
+my $input_file  = undef;                  # Org-file to reead.
 my $track_name  = undef;                  # Match exact name.
 my $track_len   = undef;                  # Try to find the len in track's name.
 my $headline    = undef;                  # Restrict to headline.
@@ -22,15 +24,18 @@ my $help        = undef;                  # Show help?
 my $info        = undef;                  # Just print informations about
                                           # tracks.
 
+Getopt::Long::Configure ("gnu_getopt");
 my $result = GetOptions (
     "out|output|o=s"    => \$output_file,
+    "in|input|i"        => \$input_file,
+    "describe|desc=s"   => \$describe,
     "format=s"          => \$format,
     "min|len=i"         => \$track_len,
     "name|tn|n=s"       => \$track_name,
     "heading=s"         => \$headline,
     "subtree=s"         => \$subtree,
     "help|h"            => \$help,
-    "info|i"            => \$info,
+    "info|inf"          => \$info,
     );
 
 
@@ -40,6 +45,15 @@ if($help) {
 }
 if($info) {
     $format = "info";
+}
+
+
+
+
+if($describe) {
+    my $formatter = Formatter::ForName(undef, $describe);
+    $formatter->describe();
+    exit 0;
 }
 
 
@@ -57,6 +71,10 @@ else {
     }
 }
 die "No data on STDIN and no input file given." unless $IN;
+
+
+
+
 
 
 ## Variables
@@ -89,26 +107,15 @@ if($output_file) {
 }
 
 
-my $formatter = undef;
-given( $format ) {
-    when('gpx') {
-        $formatter = GPXFormatter->new($OUT);
-    }
-    when('info') {
-        $formatter = INFOFormatter->new($OUT);
-    }
-    default {
-        $formatter = Formatter->new($OUT);
-    }
-}
+$format ||= 'simple';
+my $formatter = Formatter::ForName($OUT, $format);
+
 $formatter->leadIn();
 
 
 while( <$IN> )
 {
     last if $max_offset && $max_offset <= tell($IN);
-
-    # print "."; Je mehr Punkte, desto länger die Beschreibung...
 
     my($name, @long_lat);
     if( /^\s*\[\[                                 # Start of link
@@ -128,8 +135,6 @@ while( <$IN> )
         # Cut of the remaining parens:
         $long_lat[0] =~ s/\(\s*//;
         $long_lat[$#long_lat] =~ s/\s*\)//;
-        # print $name, "\n";
-        # print join(",\n", @long_lat);
         $formatter->writeTrack($name, \@long_lat);
     }
 }
@@ -164,30 +169,95 @@ sub help {
 
 package Formatter;
 
+
+sub ForName {                                     # static
+    my($fh, $format) = @_;
+    die "No output format given." unless $format;
+    given( $format ) {
+        when(/gpx/i) {
+            return GPXFormatter->new($OUT, 'GPX');
+        }
+        when(/info/i) {
+            return INFOFormatter->new($OUT, 'INFO');
+        }
+        default {
+            return SIMPLEFormatter->new($OUT, 'SIMPLE');
+        }
+    }
+}
+
 sub new {
-    my($self, $file_handle) = @_;
+    my($class, $file_handle, $format_name) = @_;
     bless {
-        name => 'simple',
-        FH => $file_handle
+        FH => $file_handle,
+        format_name => $format_name,
     }, shift;
 }
 
 sub leadIn {
+    die ("leadIn(): NOT IMPLEMENTED for " . uc($_[0]->{format_name}));
+}
+
+sub writeTrack {
+    die ("writeTrack(): NOT IMPLEMENTED for " . uc($_[0]->{format_name}));
+}
+
+sub leadOut {
+    die ("leadOut(): NOT IMPLEMENTED for " . uc($_[0]->{format_name}));
+}
+
+sub describe {
     my $self = shift;
-    print { $self->{FH} } "== Coordinates (long lat) ==\n";
+    print "Output format\n", " " x 35, $self->{format_name}, "\n\n";
+    print $self->getDescription, "\n";
+}
+
+sub getDescription {
+    die ("getDescription(): NOT IMPLEMENTED for " . uc($_[0]->{format_name}));
+    # See SIMPLEFormatter for an example.
+}
+
+1;
+
+
+
+package SIMPLEFormatter;
+
+use base "Formatter";
+
+sub new {
+    my $class = shift;
+    bless
+        $class->SUPER::new( @_ ),
+        $class;
+}
+
+sub leadIn {
+    my $self = shift;
+    print { $self->{FH} } "# All coordinates as pairs of 'longitude latitude'\n";
 }
 
 sub writeTrack {
     my($self, $track_name, $long_lat) = @_;
-    print { $self->{FH} } "* $track_name\n";
+    print { $self->{FH} } "\n* $track_name\n";
     for( @{$long_lat} ) {
         print { $self->{FH} } "$_\n";
     }
 }
 
 sub leadOut {
-    my $self = shift;
-    print { $self->{FH} } "DONE\n";
+    # Nothing to do here.
+}
+
+sub getDescription {
+    return "\t"
+        . join("\n\t",
+               ("Prints all the tracks requested seperated by empty lines.",
+                "Each track consists of a name, which is printed first.",
+                "The name line starts with an asterisk('*').",
+                "The rest of the track consists of lines each of which prints",
+                "a pair of coordinates separated by a space.",
+               ));
 }
 
 1;
@@ -199,22 +269,25 @@ package INFOFormatter;
 use base "Formatter";
 
 sub new {
-    my($class, $file_handle) = @_;
-    my $self = $class->SUPER::new($file_handle);
-    $self->{data_format} = "| %-32s | %7s | %-21s | %-21s | %-21s | %-21s |\n";
+    my $class = shift;
+    my $self = bless
+        $class->SUPER::new( @_ ),
+        $class;
+    $self->{head_format} = "| %-34.34s | %7s | %21s | %21s | %21s | %21s |\n";
+    $self->{data_format} = "| %-34.34s | %7s | %21s | %21s | %21s | %21s |\n";
     $self->{hline} = sprintf(
-        "+%-34s+%9s+%23s+%23s+%23s+%23s+\n",
-        "-" x 34,
+        "+%36s+%9s+%23s+%23s+%23s+%23s+\n",
+        "-" x 36,
         "-" x 9,
         "-" x 23, "-" x 23, "-" x 23, "-" x 23
         );
-    $self->{headline} = sprintf $self->{data_format},
+    $self->{headline} = sprintf $self->{head_format},
     "Name", "Coords",
     "Farthest North", "Farthest East", "Farthest South", "Farthest West";
-    $self->{n} = -90;
-    $self->{s} = 90;
+    $self->{n} =  -90.0;
+    $self->{s} =   90.0;
     $self->{e} = -360.0;
-    $self->{w} = 360.0;
+    $self->{w} =  360.0;
     $self->{points} = 0;
     bless $self, $class;
 }
@@ -244,7 +317,9 @@ sub writeTrack {
         if($lat  > $self->{n}) { $self->{n} = $lat; }
     }
     printf { $self->{FH} } $self->{data_format},
-    $track_name, scalar(@{$long_lat}), $n, $e, $s, $w;
+    $track_name,
+    scalar(@{$long_lat}),
+    $self->fill($n), $self->fill($e), $self->fill($s), $self->fill($w);
     $self->{points} += scalar(@{$long_lat});
 }
 
@@ -252,10 +327,34 @@ sub leadOut {
     my $self = shift;
     print { $self->{FH} } $self->{hline};
     printf { $self->{FH} } $self->{data_format},
-    "Total:", $self->{points}, $self->{n}, $self->{e}, $self->{s}, $self->{w};
+    "Total:", $self->{points},
+    $self->fill($self->{n}),
+    $self->fill($self->{e}),
+    $self->fill($self->{s}),
+    $self->fill($self->{w});
+}
+
+sub fill {
+    # Fill choords with spaces to the right.
+    my $val = pop;
+    my $factor = 18 - ( length($val) - index($val, '.') );
+    if(0 < $factor) {
+        $val .= substr("                   ", 0, $factor);
+    }
+    return $val;
+}
+
+sub getDescription {
+    return "\t"
+        . join("\n\t",
+               ("Prints a table with the name and the max north east south west",
+                "coords of each track found.",
+                "The last line shows the maximum found for the cardinal points.",
+               ));
 }
 
 1;
+
 
 
 
@@ -264,9 +363,9 @@ package GPXFormatter;
 use base "Formatter";
 
 sub new {
-    my($class, $file_handle) = @_;
+    my $class = shift;
     bless
-        $class->SUPER::new($file_handle),
+        $class->SUPER::new( @_ ),
         $class;
 }
 
@@ -301,6 +400,16 @@ sub leadOut {
     print { $self->{FH} } "</gpx>\n";
 }
 
+sub getDescription {
+    return "\t"
+        . join("\n\t",
+               ("Writes a GPX file to the selected output (STDOUT by default).",
+                "All selected tracks are written to that single GPX file.",
+               ));
+}
+
+
+
 1;
 
 
@@ -322,17 +431,19 @@ DESCRIPTION:
         STDOUT.
 
 OPTIONS:
-        -help | -h              Show this help and exit.
+        --help | -h             Show this help and exit.
 
-        -format | -f  FOMRAT    Choose output format.  Supported is the default
-                                simple textformat and GPX.  Case insensitive.
+        --format | -f  FORMAT   Choose output format.  Supported is the default
+                                'simple' textformat 'gpx' and an 'info' table.
+                                Format names are case insensitive.
 
-        -output | -o  FILENAME  Write Tracks to file FILENAME.  Dies if FILENAME
+        --output | -o FILENAME  Write Tracks to file FILENAME.  Dies if FILENAME
                                 already exists.
 
-        -info | -i              Just print inforamtions about the tracks found
+        --info | -i             Just print inforamtions about the tracks found
                                 such as name, farthes point north, east south
                                 and west.
+        --describe  FORMAT      Describe output format FORMAT.
 
 AUTHOR:
                    Author and Copyright © 2011-2012 Sebastian Rose
