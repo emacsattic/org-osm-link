@@ -81,7 +81,7 @@ You might or might not set this to an existing directory."
 
 ;;; Functions
 
-(defun osm-org-compose-link (&optional coords target-file-name)
+(defun osm-org-compose-link (&optional coords target-file-name description)
   "Store a link for a certain track.
 The link is not validated currently but the .svg extension
 is added as needed."

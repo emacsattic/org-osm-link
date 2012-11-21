@@ -298,7 +298,7 @@ current `default-directory'."
          (margin (* z osm-margin))
          (mtop 0) (mleft 0)              ; margin differences
          (defdir default-directory)
-         target                          ; File to write the imate to
+         target                          ; File to write the image to
          cmin cmax rmin rmax             ; rows and columns
          x y w h                         ; helpers
          tmp
@@ -449,7 +449,7 @@ representation of such a lol.
 This function returns a list with the car being the name of
 the track, (elt list 1) the lol as elisp object suitable as
 parameter for `osm-draw-track' and similar.  The name might
-be empty, all whitespace is removed.
+be empty, all leading and trailing whitespace is removed.
 
 See `osm-track-regexp' for more information."
   (save-match-data

@@ -97,7 +97,7 @@ if($headline) {
 }
 
 
-my $OUT = \*STDOUT;                               # Print everything to thes filehandle;
+my $OUT = \*STDOUT;                               # Print everything to this filehandle;
 if($output_file) {
     # 1. Open $output_file
     die "'$output_file': File already exists!\n"  if -f $output_file;
@@ -167,6 +167,7 @@ sub help {
 
 
 
+
 package Formatter;
 
 
@@ -174,11 +175,14 @@ sub ForName {                                     # static
     my($fh, $format) = @_;
     die "No output format given." unless $format;
     given( $format ) {
-        when(/gpx/i) {
+        when(/^gpx$/i) {
             return GPXFormatter->new($OUT, 'GPX');
         }
-        when(/info/i) {
+        when(/^info$/i) {
             return INFOFormatter->new($OUT, 'INFO');
+        }
+        when(/^svg$/i) {
+            return SVGFormatter->new($OUT, 'SVG');
         }
         default {
             return SIMPLEFormatter->new($OUT, 'SIMPLE');
@@ -221,6 +225,7 @@ sub getDescription {
 
 
 
+
 package SIMPLEFormatter;
 
 use base "Formatter";
@@ -357,7 +362,7 @@ sub getDescription {
 
 
 
-
+
 package GPXFormatter;
 
 use base "Formatter";
