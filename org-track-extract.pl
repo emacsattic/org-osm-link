@@ -6,7 +6,7 @@ use Getopt::Long;
 use File::Basename;
 use IO::Select;
 use feature "switch";
-
+use Fcntl qw(:seek);
 
 my $program_name = basename($0);
 
@@ -18,24 +18,25 @@ my $output_file = undef;                  # Output GPX to this file.
 my $input_file  = undef;                  # Org-file to reead.
 my $track_name  = undef;                  # Match exact name.
 my $track_len   = undef;                  # Try to find the len in track's name.
-my $headline    = undef;                  # Restrict to headline.
 my $subtree     = undef;                  # Restrict to all tracks in subtree.
+my $max_tracks  = undef;                  # Limit number of tracks.
 my $help        = undef;                  # Show help?
-my $info        = undef;                  # Just print informations about
-                                          # tracks.
+my $info        = undef;                  # Just informations about tracks.
+my $debug       = undef;                  # Print debugging information.
 
 Getopt::Long::Configure ("gnu_getopt");
 my $result = GetOptions (
     "out|output|o=s"    => \$output_file,
-    "in|input|i"        => \$input_file,
+    "in|input|i=s"      => \$input_file,
     "describe|desc=s"   => \$describe,
     "format=s"          => \$format,
     "min|len=i"         => \$track_len,
     "name|tn|n=s"       => \$track_name,
-    "heading=s"         => \$headline,
+    "max|m=i"           => \$max_tracks,
     "subtree=s"         => \$subtree,
     "help|h"            => \$help,
     "info|inf"          => \$info,
+    "debug"             => \$debug,
     );
 
 
@@ -70,31 +71,130 @@ else {
         $IN = \*STDIN;
     }
 }
-die "No data on STDIN and no input file given." unless $IN;
+die "No data on STDIN and no input file given.  Consider `$program_name -h'\n" unless $IN;
 
 
 
-
-
-
-## Variables
+## Narrow to region:
 my $min_offset  = 0;
 my $max_offset  = 0;
 
 
-## TODO: Restrict to a subtree.
-if($subtree) {
-    # 1. Read to start of subtree and set $min_offset accordingly.
-    # 2. Find end of subtree and set $max_offset accordingly.
-    # 3. Seek back to $min_offset.
-}
 
-## TODO: Restrict to a headline (possibly found in subtree).
-if($headline) {
-    # 1. Find $head_line and set $min_offset accordingly.
-    # 2. Find next headline and set $max_offset accordingly.
-    # 3. Seek back to $min_offset.
+## Restrict to a subtree.
+if($subtree) {
+
+    my $line_start = "*";
+    my $old_line_start = undef;
+    my $line;
+
+    if($subtree =~ /^\d+(\.\d+)*$/)               # Section number given?
+    {
+        my @secs = split(/\./, $subtree);
+        my $sec  = shift @secs;
+        my $found = 0;
+
+        ## Search beginning of subtree.
+        while($line = <$IN>) {
+
+            if($old_line_start && 0 == index($line, "$old_line_start ")) {
+                logDebug("$line");
+                die "    => ERROR: no deeper nested level found after position $min_offset!\n";
+            }
+
+            if(0 == index($line, "$line_start "))
+            {
+                ++$found;
+                logDebug("$line");
+            }
+
+            if($found == $sec)                    # Section found.
+            {
+                if(0 == scalar(@secs)) {          # Final Section found.
+                    $min_offset = tell($IN);      # Set min_offset
+                    {
+                        use bytes;
+                        $min_offset -= length($line);
+                    }
+                    # Remember the correct level.  We will need this below, when
+                    # we search for the end of our subtree.
+                    $line_start = $old_line_start;
+                    last;                         # and quit this search.
+                }
+
+                $found = 0;                       # Reset
+                $sec = shift @secs;               # and search next deeper nested level.
+                $min_offset = tell($IN);          # Remember beginning of line
+                                                  # following last match.
+
+                while($line = <$IN>) {            # Search for nested level.
+                    if(0 == index($line, "$line_start")) {
+                        my @m = $line =~ /^(\*+)/;
+                        unless(length($m[0]) > length($line_start)) {
+                            logDebug($line);
+                            die "    => ERROR: no deeper nested level found after position $min_offset!\n";
+                        }
+                        $old_line_start = $line_start;
+                        $line_start = $m[0];      # Regardless of odd/even.
+                         # Seek back to beginning of line following last match:
+                        seek($IN, $min_offset, SEEK_SET);
+                        last;
+                    }
+                    continue;
+                }
+            }
+        }
+    }
+    ##  END OF     if( numeric subtree ... )
+
+    else
+    {
+        $subtree =~ s/^\**\s*//;
+        logDebug("Searching for Headline '$subtree'\n");
+        while($line = <$IN>) {
+            if($line =~ /^(\*+)\s*$subtree$/) {
+                # Again: remember the correct level.  We will need this below,
+                # when we search for the end of our subtree.
+                $line_start = $1;
+                logDebug($line);
+                $min_offset = tell($IN);
+                {
+                    use bytes;
+                    $min_offset -= length($line);
+                }
+                last;
+            }
+        }
+    }
+    ## END OF     if( ! numeric subtree )
+
+    unless($min_offset > 0) {
+        die "'$subtree':  section not found.\n";
+    }
+
+    logDebug("Section $subtree found at (byte-) offset $min_offset\n");
+
+    ## In either case, search end of subtree:
+    seek($IN, $min_offset, SEEK_SET);
+    <$IN>;                                        # Skip our headline.
+    while($line = <$IN>) {
+        if($line =~ /^(\*+)/) {
+            if(length($1) <= length($line_start)) {
+                {
+                    use bytes;
+                    $max_offset = tell($IN) - length($line);
+                }
+                logDebug( "End of subtree at (byte-) offset $max_offset.\n",
+                          "At beginning of this line:\n",
+                          $line );
+                last;
+            }
+        }
+    }
+
 }
+## END OF   if( $subtree )
+
 
 
 my $OUT = \*STDOUT;                               # Print everything to this filehandle;
@@ -111,11 +211,12 @@ $format ||= 'simple';
 my $formatter = Formatter::ForName($OUT, $format);
 
 $formatter->leadIn();
-
-
+my $tracks_extracted = 0;
+seek($IN, $min_offset, SEEK_SET);
 while( <$IN> )
 {
     last if $max_offset && $max_offset <= tell($IN);
+    last if $max_tracks && $max_tracks <= $tracks_extracted;
 
     my($name, @long_lat);
     if( /^\s*\[\[                                 # Start of link
@@ -129,13 +230,15 @@ while( <$IN> )
          \[                                       # Start second link part
          ([^\]]*)                                 # Name of the track
          \]\]                                     # End of link
-        /iox ) {
+        /iox )
+    {
         $name = basename $2;
         @long_lat = split(/\s*\)\s*\(\s*/o, $1);
         # Cut of the remaining parens:
         $long_lat[0] =~ s/\(\s*//;
         $long_lat[$#long_lat] =~ s/\s*\)//;
         $formatter->writeTrack($name, \@long_lat);
+        $tracks_extracted++;
     }
 }
 
@@ -148,6 +251,11 @@ close $IN  or die $!;
 exit 0;
 
 
+sub logDebug {
+    unless($debug) {
+        print STDERR @_;
+    }
+}
 
 
 sub trim
@@ -436,19 +544,37 @@ DESCRIPTION:
         STDOUT.
 
 OPTIONS:
-        --help | -h             Show this help and exit.
+        --help | -h
+                Show this help and exit.
 
-        --format | -f  FORMAT   Choose output format.  Supported is the default
-                                'simple' textformat 'gpx' and an 'info' table.
-                                Format names are case insensitive.
+        --format FORMAT, -f  FORMAT
+                Choose output format.  Supported is the default 'simple'
+                textformat 'gpx' and an 'info' table. Format names are case
+                insensitive.
 
-        --output | -o FILENAME  Write Tracks to file FILENAME.  Dies if FILENAME
-                                already exists.
+        --output FILENAME, --out FILENAME, -o FILENAME
+                Write Tracks to file FILENAME.  Dies if FILENAME already exists.
 
-        --info | -i             Just print inforamtions about the tracks found
-                                such as name, farthes point north, east south
-                                and west.
-        --describe  FORMAT      Describe output format FORMAT.
+        --input FILENAME, --in FILENAME, -i FILENAME
+                Read Tracks from FILENAME.
+
+        --info, --inf
+                Just print inforamtions about the tracks found such as name,
+                farthes point north, east south and west.
+
+        --debug
+                Print debugging information to STDERR.
+
+        --describe  FORMAT
+                Describe output format FORMAT.
+
+        --subtree | -s SECTION
+                Restrict extraction to tracks found in a certain subtree.
+                SECTION may be the exact heading or a numeric section identifier
+                like '2.1'.
+
+        --max | n MAX
+                Limit the number of tracks to MAX (integer).
 
 AUTHOR:
                    Author and Copyright © 2011-2012 Sebastian Rose

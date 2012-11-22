@@ -24,6 +24,9 @@
   - Export org track links to GPX.  Either the next link or all links in a
     region.  Each track is added only once, provided track-filename and choords
     match.
+  - org-track-extract.pl  extracts tracks from your org file again and prints
+    statistics or a GPX file.  The export may be restricted to a subtre and/or
+    a certain number of tracks.
 
 
 * Setup
