@@ -206,19 +206,26 @@ the next org track link."
 (defun osm-publish-map-for-html (plist file pubdir)
   "Publish existing maps for use with HTML files.
 For this to work, you'll need to set up a special publishing
-project in you `org-publish-project-alist'.  Here is an
+project in your `org-publish-project-alist'.  Here is an
 example:
 
   (\"org-osm-maps\"
    :base-directory \"~/org/training/\"
-   :publishing-directory \"~/public_html/org/training/\"
+   :publishing-directory \"~/public_html/org/tracks/\"
    :recursive t
    :base-extension \"svg\"
    :osm-cache-directory \"~/org/img/OSM/\"
    :publishing-function osm-publish-map-for-html)
 
-:osm-cache-directory denotes the path to link the background
-tiles to.  Not checked for existence."
+:osm-cache-directory denotes the path to link the background tiles to.
+The directory is not checked for existence.  The value is turned into
+a path relative to the `file' parameter.
+
+Example:
+If your SVG track lives in ~/org/tracks/ and your background-tiles in
+~/org/img/bg-tiles/, the tiles will be referenced by ../img/bg-tiles/.
+Therefor, if you publish your SVG tracks to ~/public_html/org/tracks/,
+there should be a directory (or smylink) ~/public_html/img/bg-tiles/."
   (let* ((target (concat
                   (file-name-as-directory pubdir)
                   (file-name-nondirectory file)))
@@ -232,19 +239,19 @@ tiles to.  Not checked for existence."
                      (file-relative-name
                       (plist-get plist :osm-cache-directory)
                       (file-name-directory file)))))
-         (ama auto-mode-alist))
-
+         (ama auto-mode-alist)
+         (mma magic-mode-alist))
     (unwind-protect
         (progn
-          (setq auto-mode-alist nil)
-          (with-temp-buffer
-            (insert-file file)
+          (setq auto-mode-alist nil
+                magic-mode-alist nil)
+          (with-temp-file target
+            (insert-file-contents file)
             (beginning-of-buffer)
-            (replace-string old-path new-path)
-            (write-file target)))
+            (replace-string old-path new-path)))
       ;; clean up forms:
-      (setq auto-mode-alist ama))
-))
+      (setq auto-mode-alist  ama
+            magic-mode-alist mma))))
 
 
 ;;; Finally install the link type
