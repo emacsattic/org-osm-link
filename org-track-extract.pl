@@ -264,7 +264,7 @@ exit 0;
 
 
 sub logDebug {
-    unless($debug) {
+    if ($debug) {
         print STDERR @_;
     }
 }
@@ -559,10 +559,10 @@ sub new {
     $self->{osmMaxLatitude} = 85.05112877;
 
     unless( defined($self->{params}{tiles}) && $self->{params}{tiles} ) {
-        warn "No BG-Tiles directory given. Using default: "
+        main::logDebug( "No BG-Tiles directory given. Using default: "
             # . $SVGFormatter::default_cache_directory
             . $ENV{HOME} . "/.emacs.d/osm"
-            . "\n";
+            . "\n" );
         $self->{params}{tiles} = $ENV{HOME} . "/.emacs.d/osm"; # $SVGFormatter::default_cache_directory;
     }
     unless(-d $self->{params}{tiles}) {
@@ -570,10 +570,10 @@ sub new {
     }
 
     unless( defined($self->{params}{zoom}) && $self->{params}{zoom} ) {
-        warn "No zoom level given. Using default: "
+        main::logDebug( "No zoom level given. Using default: "
             # . $SVGFormatter::default_zoom
             . "15"
-            . "\n";
+            . "\n" );
         $self->{params}{zoom} = 15; # $SVGFormatter::default_zoom;
     }
     $self->_setZoom($self->{params}{zoom});
@@ -612,11 +612,11 @@ sub leadIn {
 sub writeTrack {
     my($self, $track_name, $long_lat) = @_;
     if($self->done()) {
-        print STDERR "SVG-Format: only one track at a time. Sorry.\n";
+        main::logDebug( "SVG-Format: only one track at a time. Sorry.\n" );
         return;
     }
     my $old_fh = select($self->{FH});
-    # print STDERR "Drawing $track_name\n";
+    main::logDebug( "Drawing $track_name ONLY.\n" );
     my $minx = 360.0;                             # Store mininum West
     my $maxx =   0.0;                             # Store maximum West
     my $miny =  90.0;                             # Store minimum North
@@ -634,32 +634,32 @@ sub writeTrack {
     $maxx = $self->_longitudeToX($maxx);
     $miny = $self->_latitudeToY($miny);
     $maxy = $self->_latitudeToY($maxy);
-    printf STDERR "In pixels => minx maxx miny maxy: %s %s %s %s\n", $minx, $maxx, $miny, $maxy;
+    main::logDebug( "In pixels => minx maxx miny maxy: %s %s %s %s\n", $minx, $maxx, $miny, $maxy );
     # Swap y values (southern hemisphere yield negative latitudes):
     if($maxy < $miny) {
         my $tmp = $maxy;
         $maxy = $miny;
         $miny = $tmp;
     }
-    printf STDERR "Evtl. swap y => minx maxx miny maxy: %s %s %s %s\n", $minx, $maxx, $miny, $maxy;
+    main::logDebug( "Evtl. swap y => minx maxx miny maxy: %s %s %s %s\n", $minx, $maxx, $miny, $maxy );
     # Add the margin:
     $minx -= $self->{margin};
     $maxx += $self->{margin};
     $miny -= $self->{margin};
     $maxy += $self->{margin};
-    printf STDERR "Margin added => minx maxx miny maxy: %s %s %s %s\n", $minx, $maxx, $miny, $maxy;
+    main::logDebug( "Margin added => minx maxx miny maxy: %s %s %s %s\n", $minx, $maxx, $miny, $maxy );
 
     # # Substract  get the tiles we need (rows and columns):
     my $cmin = $minx >> 8;
     my $cmax = $maxx >> 8;
     my $rmin = $miny >> 8;
     my $rmax = $maxy >> 8;
-    printf STDERR "cmin cmax rmin rmax: %s %s %s %s\n", $cmin, $cmax, $rmin, $rmax;
+    main::logDebug( "cmin cmax rmin rmax: %s %s %s %s\n", $cmin, $cmax, $rmin, $rmax );
     # Calculate the margines.  The two margins now are positive integers to
     # substract from all x and y coords.
     my $mtop  = $miny - ($rmin << 8);
     my $mleft = $minx - ($cmin << 8);
-    printf STDERR "mleft mtop: %s %s\n", $mleft, $mtop;
+    main::logDebug( "mleft mtop: %s %s\n", $mleft, $mtop );
 
     # calculate width and height:
     my $width  = $maxx - $minx;
@@ -735,20 +735,20 @@ sub _longitudeToX {
 sub _latitudeToY {
     my( $self, $latitude ) = @_;
 
-    print STDERR "Latitude: $latitude\n";
-    print STDERR "Äquator: $self->{equator}\n";
+    main::logDebug( "Latitude: $latitude\n" );
+    main::logDebug( "Äquator: $self->{equator}\n" );
 
     if( abs($latitude) >= $self->{osmMaxLatitude} )
     {
         $latitude = $self->{osmMaxLatitude};
         if( $latitude > 0) {
-            print STDERR "Latitude ", $latitude, " out of bounds! Using ",
-             $self->{osmMaxLatitude}, ", i.e. the maximum.\n";
+            main::logDebug( "Latitude ", $latitude, " out of bounds! Using ",
+                            $self->{osmMaxLatitude}, ", i.e. the maximum.\n" );
         }
 
         else {
-            print STDERR "Latitude ", $latitude, " out of bounds! Using -",
-            $self->{osmMaxLatitude}, ", i.e. the minimum.\n";
+            main::logDebug("Latitude ", $latitude, " out of bounds! Using -",
+                           $self->{osmMaxLatitude}, ", i.e. the minimum.\n" );
             $latitude *= -1.0;
         }
     }
