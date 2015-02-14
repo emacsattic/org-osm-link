@@ -13,7 +13,7 @@ my $program_name = basename($0);
 
 
 ## Options:
-my $format      = undef;                  # Output format.
+my $format      = "simple";               # Output format.
 my $describe    = undef;                  # Describe the selected output format.
 my $output_file = undef;                  # Output GPX to this file.
 my $input_file  = undef;                  # Org-file to reead.
@@ -38,7 +38,6 @@ my $result = GetOptions (
     "max|m=i"           => \$max_tracks,
     "subtree|s=s"       => \$subtree,
     "help|h"            => \$help,
-    "info|inf"          => \$info,
     "debug"             => \$debug,
     );
 
@@ -50,9 +49,7 @@ if($help) {
     help();
     exit 0;
 }
-if($info) {
-    $format = "info";
-}
+
 
 
 
@@ -796,19 +793,29 @@ OPTIONS:
                 Show this help and exit.
 
         --format FORMAT, -f  FORMAT
-                Choose output format.  Supported is the default 'simple'
-                textformat 'gpx' and an 'info' table. Format names are case
-                insensitive.
+                Choose output format.  Case of FORMAT doesn't matter.
+                Supported formats are:
+            simple
+                Print a pair of coordinates per line.  Tracks are preceeded by
+                an empty line and a title (an '*' followed by the track's name).
+                This is the default.
+            gpx
+                Will ouput a GPX file.
+            info
+                creates a (org-mode) table of all tracks found.  Shows name,
+                number of track-points, and farthest west, south, east, and
+                north coords for each track found in the input.  Plus a summary
+                line.
 
         --output FILENAME, --out FILENAME, -o FILENAME
-                Write Tracks to file FILENAME.  Dies if FILENAME already exists.
+                Write Tracks to file FILENAME.  Dies if FILENAME already exists
+                unless --force is given.
 
         --input FILENAME, --in FILENAME, -i FILENAME
                 Read Tracks from FILENAME.
-
-        --info, --inf
-                Just print inforamtions about the tracks found such as name,
-                farthes point north, east south and west.
+                The script tries --input FILENAME, then STDIN and then falls
+                back to last filename that remains on the commandline after
+                reading the options.  The first file found is processed.
 
         --debug
                 Print debugging information to STDERR.
