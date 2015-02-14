@@ -7,6 +7,7 @@ use File::Basename;
 use IO::Select;
 use feature "switch";
 use Fcntl qw(:seek);
+no warnings qw/experimental/;
 
 my $program_name = basename($0);
 
@@ -16,6 +17,7 @@ my $format      = undef;                  # Output format.
 my $describe    = undef;                  # Describe the selected output format.
 my $output_file = undef;                  # Output GPX to this file.
 my $input_file  = undef;                  # Org-file to reead.
+my $force       = undef;                  # Overwrite existing file.
 my $track_name  = undef;                  # Match exact name.
 my $track_len   = undef;                  # Try to find the len in track's name.
 my $subtree     = undef;                  # Restrict to all tracks in subtree.
@@ -29,17 +31,21 @@ my $result = GetOptions (
     "out|output|o=s"    => \$output_file,
     "in|input|i=s"      => \$input_file,
     "describe|desc=s"   => \$describe,
-    "format=s"          => \$format,
+    "format|f=s"        => \$format,
+    "force"             => \$force,
     "min|len=i"         => \$track_len,
     "name|tn|n=s"       => \$track_name,
     "max|m=i"           => \$max_tracks,
-    "subtree=s"         => \$subtree,
+    "subtree|s=s"       => \$subtree,
     "help|h"            => \$help,
     "info|inf"          => \$info,
     "debug"             => \$debug,
     );
 
-
+unless($result) {
+    print "Consult `$program_name -h'\n";
+    exit 1;
+}
 if($help) {
     help();
     exit 0;
@@ -60,8 +66,7 @@ if($describe) {
 
 
 my $IN = undef;
-if(0 < scalar(@ARGV)) {
-    my $input_file = pop;
+if($input_file) {
     open($IN, "<", $input_file) or die $!;
 }
 else {
@@ -70,8 +75,12 @@ else {
     if($in->can_read(0)) {
         $IN = \*STDIN;
     }
+    elsif(0 < scalar(@ARGV)) {
+        $input_file = pop;
+        open($IN, "<", $input_file) or die $!;
+    }
 }
-die "No data on STDIN and no input file given.  Consider `$program_name -h'\n" unless $IN;
+die "No data on STDIN and no input file given.  `$program_name -h' might help.\n" unless $IN;
 
 
 
@@ -200,7 +209,10 @@ if($subtree) {
 my $OUT = \*STDOUT;                               # Print everything to this filehandle;
 if($output_file) {
     # 1. Open $output_file
-    die "'$output_file': File already exists!\n"  if -f $output_file;
+    if(-f $output_file) {
+        die "'$output_file': File already exists!\n" unless $force;
+        logDebug("Overriding existing output file $output_file\n");
+    }
     open(OUT, ">", $output_file) or die $!;
     # 2. $OUT = *output_file_handle.
     $OUT = \*OUT;
@@ -377,6 +389,7 @@ sub getDescription {
 
 
 
+
 package INFOFormatter;
 
 use base "Formatter";
@@ -522,11 +535,246 @@ sub getDescription {
 }
 
 
+1;
+
+
+
+
+
+package SVGFormatter;
+
+use base "Formatter";
+use Math::Trig;
+
+# Package defaults:
+my $default_zoom   = 15;
+my $default_margin = 10;
+my $default_cache_directory = $ENV{HOME} . "/.emacs.d/osm";
+
+sub new {
+    my $class = shift;
+    my $self = $class->SUPER::new( @_ );
+    bless $self, $class;
+
+    $self->{osmMaxLatitude} = 85.05112877;
+
+    unless( defined($self->{params}{tiles}) && $self->{params}{tiles} ) {
+        warn "No BG-Tiles directory given. Using default: "
+            # . $SVGFormatter::default_cache_directory
+            . $ENV{HOME} . "/.emacs.d/osm"
+            . "\n";
+        $self->{params}{tiles} = $ENV{HOME} . "/.emacs.d/osm"; # $SVGFormatter::default_cache_directory;
+    }
+    unless(-d $self->{params}{tiles}) {
+        die $self->{params}{tiles} . ": No such directory.";
+    }
+
+    unless( defined($self->{params}{zoom}) && $self->{params}{zoom} ) {
+        warn "No zoom level given. Using default: "
+            # . $SVGFormatter::default_zoom
+            . "15"
+            . "\n";
+        $self->{params}{zoom} = 15; # $SVGFormatter::default_zoom;
+    }
+    $self->_setZoom($self->{params}{zoom});
+    $self->{done} = 0;
+    $self;
+}
+
+sub _setZoom {
+    my($self, $z) = @_;
+    $self->{zoom} = int($z);
+    $self->{circInTiles}  = 1 << $self->{zoom};   # Circumference in tiles.
+    $self->{circInPixels} =                       # Circumference in pixels.
+        $self->{circInTiles} << 8;
+    $self->{greenwich}    =                       # The Prime meridian's distance
+        $self->{circInPixels} >> 1;               # from the Antimeridian in pixels.
+    $self->{equator}      =                       # Equator in pixels from top.
+        128 << $self->{zoom};
+    $self->{radiusInPixels} = $self->{circInPixels} / pi;
+    $self->{margin} = $self->{zoom} * 5;          # Margin in Pixels.
+}
+
+sub leadIn {
+    my $self = shift;
+    print { $self->{FH} }
+    "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n",
+    "<!DOCTYPE svg PUBLIC \"-//w3c//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n";
+}
+
+#
+# TODO:
+#  - Make (the-farthest-west-coor MINUS $minx) = 0.
+#  - Record each track as a <g> element and remember their upper left and lower right corners (plus coords).
+#  - Fill the svg with background tiles as needed.
+#  - Place the <g> elements in an SVG (on leadOut()) big enough to hold them all plus some margin.
+#
+sub writeTrack {
+    my($self, $track_name, $long_lat) = @_;
+    if($self->done()) {
+        print STDERR "SVG-Format: only one track at a time. Sorry.\n";
+        return;
+    }
+    my $old_fh = select($self->{FH});
+    # print STDERR "Drawing $track_name\n";
+    my $minx = 360.0;                             # Store mininum West
+    my $maxx =   0.0;                             # Store maximum West
+    my $miny =  90.0;                             # Store minimum North
+    my $maxy =   0.0;                             # Store maximum North
+
+    for( @{$long_lat} ) {
+        my($long, $lat) = split(" ");
+        if($long < $minx) { $minx = $long; }
+        if($long > $maxx) { $maxx = $long; }
+        if($lat  < $miny) { $miny = $lat; }
+        if($lat  > $maxy) { $maxy = $lat; }
+    }
+    # Translate degrees to pixels:
+    $minx = $self->_longitudeToX($minx);
+    $maxx = $self->_longitudeToX($maxx);
+    $miny = $self->_latitudeToY($miny);
+    $maxy = $self->_latitudeToY($maxy);
+    printf STDERR "In pixels => minx maxx miny maxy: %s %s %s %s\n", $minx, $maxx, $miny, $maxy;
+    # Swap y values (southern hemisphere yield negative latitudes):
+    if($maxy < $miny) {
+        my $tmp = $maxy;
+        $maxy = $miny;
+        $miny = $tmp;
+    }
+    printf STDERR "Evtl. swap y => minx maxx miny maxy: %s %s %s %s\n", $minx, $maxx, $miny, $maxy;
+    # Add the margin:
+    $minx -= $self->{margin};
+    $maxx += $self->{margin};
+    $miny -= $self->{margin};
+    $maxy += $self->{margin};
+    printf STDERR "Margin added => minx maxx miny maxy: %s %s %s %s\n", $minx, $maxx, $miny, $maxy;
+
+    # # Substract  get the tiles we need (rows and columns):
+    my $cmin = $minx >> 8;
+    my $cmax = $maxx >> 8;
+    my $rmin = $miny >> 8;
+    my $rmax = $maxy >> 8;
+    printf STDERR "cmin cmax rmin rmax: %s %s %s %s\n", $cmin, $cmax, $rmin, $rmax;
+    # Calculate the margines.  The two margins now are positive integers to
+    # substract from all x and y coords.
+    my $mtop  = $miny - ($rmin << 8);
+    my $mleft = $minx - ($cmin << 8);
+    printf STDERR "mleft mtop: %s %s\n", $mleft, $mtop;
+
+    # calculate width and height:
+    my $width  = $maxx - $minx;
+    my $height = $maxy - $miny;
+
+    print "<svg xmlns=\"http://www.w3.org/2000/svg\"
+        xmlns:xlink=\"http://www.w3.org/1999/xlink\"
+        version=\"1.1\"
+        width=\"$width\" height=\"$height\">\n",
+    " <g id=\"layer1\">\n";
+
+    # BACKGROUND TILES....
+
+    # Draw the track itself:
+    my($long, $lat) = split(" ", shift(@{$long_lat}));
+    print
+        "  <path\n",
+        "    d=\"M ",
+            ( $self->_longitudeToX($long) - $minx),
+            ",",
+            ( $self->_latitudeToY($lat) - $miny),
+        " L";
+    for( @{$long_lat} ) {
+        ($long, $lat) = split(" ");
+        print
+            " ",
+            ( $self->_longitudeToX($long) - $minx),
+            ",",
+            ( $self->_latitudeToY($lat) - $miny),
+    }
+
+    print "\"\n",
+    "    style=\"fill:none;stroke:#ff0000;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:0.95;stroke-dasharray:none\"",
+    " />\n",
+    " </g>\n";
+        # "</svg>\n";
+    select($old_fh);
+    $self->done(1);
+}
+
+sub done {
+    my($self, $done) = @_;
+    $self->{done} = $done   if $done;
+    $self->{done};
+}
+
+sub leadOut {
+    my $self = shift;
+    print { $self->{FH} } "</svg>\n";
+}
+
+sub getDescription {
+    return "\t"
+        . join("\n\t",
+               ("Writes a SVG file to the selected output (STDOUT by default).",
+                "All selected tracks are written to that single SVG file.",
+                "",
+                "Required Parameters:",
+                "NOT  IMPLEMENTED  YET.",
+               ));
+}
+
+# Return the x value in pixels from the date line for a certain latitude.
+sub _longitudeToX {
+    my($self, $longitude) = @_;
+    return int( $self->{greenwich}
+                + ( ($self->{circInPixels} / 360) * $longitude )
+        );
+}
+
+# Return the y value in pixels (offset) from the northpole and the
+# y-number of the tile that pixel is found on as [ pixel tileY ].
+sub _latitudeToY {
+    my( $self, $latitude ) = @_;
+
+    print STDERR "Latitude: $latitude\n";
+    print STDERR "Äquator: $self->{equator}\n";
+
+    if( abs($latitude) >= $self->{osmMaxLatitude} )
+    {
+        $latitude = $self->{osmMaxLatitude};
+        if( $latitude > 0) {
+            print STDERR "Latitude ", $latitude, " out of bounds! Using ",
+             $self->{osmMaxLatitude}, ", i.e. the maximum.\n";
+        }
+
+        else {
+            print STDERR "Latitude ", $latitude, " out of bounds! Using -",
+            $self->{osmMaxLatitude}, ", i.e. the minimum.\n";
+            $latitude *= -1.0;
+        }
+    }
+
+    my $z = (0 < ($self->{zoom} - 1))
+        ? $self->{zoom} - 1
+        : -1.0 * $self->{zoom};
+    my $lat = deg2rad( abs $latitude );
+    my $ret = ($self->{radiusInPixels} / 2.0) *
+        log( (1.0 + sin($lat))
+             /
+             (1.0 - sin($lat))
+        );
+
+    if($latitude >= 0) {
+        return int($self->{equator} - $ret);
+    }
+    return int($self->{equator} + $ret);
+}
+
 
 1;
 
 
 
+
 package main;
 
 __DATA__
