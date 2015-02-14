@@ -16,5 +16,7 @@
 _MTN
 .hg*
 
-# Images we produce for testing:
+# Files we produce for testing:
 *.svg
+*.gpx
+*.txt
