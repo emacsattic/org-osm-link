@@ -195,7 +195,7 @@ Returns the path to the resulting image PNG file.
 Montage needs imageMagick to be installed, so that montage is found in
 $PATH.
 
-Deprecated."
+DEPRECATED."
   (let* ((x min-x) ;; FIXME: check for valid input
          (y min-y) ;; FIXME: check for valid input
          (w (+ 1 (- max-x min-x))) ;; FIXME: check for valid input
@@ -251,7 +251,7 @@ y-number of the tile that pixel is found on as '(pixel tileY)."
                latitude (- osmMaxLatitude))
       (setq latitude (- osmMaxLatitude))))
 
-  (let* ((equator (lsh 128 z)) ; BEFORE we change the zoom
+  (let* ((equator (lsh 128 zoom))
          (z (or (- zoom 1) (- osm-default-zoom)))
          (r (/ equator pi))
          (north (> latitude 0)) ; Negative latitudes are on the southern hemisphere!
@@ -323,10 +323,10 @@ current `default-directory'."
       (setq maxy miny)
       (setq miny tmp))
     ;; Add the margin:
-    (setq minx (- minx (* osm-margin z)))
-    (setq maxx (+ maxx (* osm-margin z)))
-    (setq miny (- miny (* osm-margin z)))
-    (setq maxy (+ maxy (* osm-margin z)))
+    (setq minx (- minx margin))
+    (setq maxx (+ maxx margin))
+    (setq miny (- miny margin))
+    (setq maxy (+ maxy margin))
     ;; Now get the tiles we need (rows and columns):
     (setq cmin (osm-column-for-x minx z))
     (setq cmax (osm-column-for-x maxx z))

@@ -11,7 +11,8 @@
 
 * Implemented features
 
-  - Download and caching of background tiles.
+  - Download and caching of background tiles.  Sources are OSM (default) or
+    google maps.
   - Optionally use online resources as background tiles.
   - Maps are saved as SVG files and thus may share cached background tiles.
   - Working Org links.  The link type is =track:=.  Clicking a =track:= link pops up
@@ -27,7 +28,12 @@
   - org-track-extract.pl  extracts tracks from your org file again and prints
     statistics or a GPX file.  The export may be restricted to a subtre and/or
     a certain number of tracks.
-
+    Here is an example:
+    : org-track-extract.pl --max 2 --format gpx \
+    :        --subtree 4.1.1 ~/training.org 2>debug.log
+    Work on SVG export is in progress.  But it currently extracts one track only
+    and does not print the background tiles (as the elisp stuff does).  Help
+    welcome.
 
 * Setup
 
@@ -87,7 +93,8 @@
 
 * How to publish the maps with HTML?
 
-  See the docs for osm-publish-map-for-html.
+  See the docs for `osm-publish-map-for-html' in org-osm-link.el (or simply type
+  =C-h f osm-pu TAB RET=).
 
 * Can I export osm-org track: links to GPX?
   Yes.  From within Emacs use
