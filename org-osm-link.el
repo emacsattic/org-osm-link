@@ -241,6 +241,7 @@ there should be a directory (or smylink) ~/public_html/img/bg-tiles/."
                       (file-name-directory file)))))
          (ama auto-mode-alist)
          (mma magic-mode-alist))
+    (make-directory pubdir t)
     (unwind-protect
         (progn
           (setq auto-mode-alist nil
