@@ -8,7 +8,6 @@
   backgrounds and your tracks on top of them.  Tracks are made of lists of pairs
   of coordinates.
 
-
 * Implemented features
 
   - Download and caching of background tiles.  Sources are OSM (default) or
@@ -31,9 +30,7 @@
     Here is an example:
     : org-track-extract.pl --max 2 --format gpx \
     :        --subtree 4.1.1 ~/training.org 2>debug.log
-    Work on SVG export is in progress.  But it currently extracts one track only
-    and does not print the background tiles (as the elisp stuff does).  Help
-    welcome.
+  - SVGs may be published along with your Org-files.  See /Publishing Setup/ below.
 
 * Setup
 
@@ -113,17 +110,62 @@
 * Caveats
 
 *** Crashes caused by looong lines in tooltips
-    On my system, emacs crashes every now an then when I move the mous over a
-    track link.  This is because of a bug with very long lines in tooltips.  I
-    can avoid tooltips per file by adding these lines to the end of my training
-    diaries:
+    Did not see this bug for long time now, though.  I use the bleeding edge
+    emacs from git...
+
+    Emacs used to crash every now and so often when I moved the mouse over a
+    track link.  This was caused by a bug with those very long lines in
+    tooltips.  You can avoid tooltips per file by adding these lines to the end
+    of your training diaries:
     #+begin_example
       # Local Variables:
       # eval: (tooltip-mode -1)
       # End:
     #+end_example
 
-* Aims and ideas
+* Publishing Setup
+
+  This is my publishing setup.  Well - the short version :)
+
+  #+BEGIN_SRC emacs-lisp
+    (setq org-publish-project-alist
+          '(
+            ;; Publishes the HTML pages.
+            ;; NOTE, that the OSM map tile directory is excluded!
+            ("org-notes"
+             :base-directory "~/org/notes/"
+             :recursive t
+             :base-extension "org"
+             ;; this could be: "/ssh:user@host:~/html/notebook/"
+             :publishing-directory "~/public_html/org-notes/"
+             :publishing-function org-html-publish-to-html
+             :exclude "OSM"
+             )
+
+            ;; Publish the tracks
+            ("org-osm-maps"
+             :base-directory "~/org/notes/tracks/"
+             :publishing-directory "~/public_html/tracks/"
+             :recursive t
+             :base-extension "svg"
+             :osm-cache-directory "~/org/notes/img/OSM/"
+             :publishing-function osm-publish-map-for-html
+             )
+
+            ;; Publishing static content.
+            ;; AGAIN:  The OSM map tile directory is excluded!
+            ("org-notes-static"
+             :base-directory "~/org/notes/"
+             :exclude "OSM\\|oman-2010"
+             :recursive t
+             :base-extension "css\\|js\\|png\\|jpg\\|gif\\|ico\\|pdf\\|mp3\\|ogg\\|swf\\|txt\\|htm\\|html\\|dtd\\|php"
+             :publishing-directory "~/public_html/org-notes/"
+             :publishing-function org-publish-attachment)
+
+            ("org" :components ("org-notes" "org-osm-maps" "org-notes-static"))))
+  #+END_SRC
+
+* Things you might wanna add
 
   - *Better documentation*.
   - Configure zoom levels and areas to cache the images for.  Produce SVGs with
