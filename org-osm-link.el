@@ -66,7 +66,27 @@ to the image file.
 Here is an example for use with Gnome:
   (setq osm-org-image-viewer-function
         (lambda (file)
-          (call-process \"gnome-open\" nil 0 nil file)))"
+          (call-process \"gnome-open\" nil 0 nil file)))
+
+More general:
+  (setq osm-org-image-viewer-function
+        (lambda (file)
+          (call-process \"xdg-open\" nil 0 nil file)))
+
+Open the track in a dedicated frame (emacs 25):
+  (setq osm-org-image-viewer-function
+        (lambda (file)
+          (find-file-other-frame file)
+          (set-window-dedicated-p (selected-window) t)))
+
+Insert newline and an Org-mode image link and turn on `iimage-mode':
+  (setq osm-org-image-viewer-function
+        (lambda (file)
+          (end-of-line)
+          (newline-and-indent)
+          (insert (format \"[[file:%s]]\"))
+          (iimage-mode 1)))
+"
   :group 'osm-maps
   :type  'function)
 

@@ -74,7 +74,8 @@
   Once you click the link the image is created for you and shown in a new
   buffer.  Existing tracks are re-used.  You may provide a custom funciton to
   show the images.  See the docs for the custom variable
-  =`osm-org-image-viewer-function=' in =org-osm-link.el=.
+  =`osm-org-image-viewer-function=' in =org-osm-link.el=.  The docstring for that
+  variable provide several proposals, one of which you might find useful.
 
 
 * How to insert track links easily
