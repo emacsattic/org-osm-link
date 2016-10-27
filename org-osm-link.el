@@ -63,6 +63,9 @@ Possible replacements:
 The function is called with one argument: the absolute path
 to the image file.
 
+The default function `osm-org-show-track' opens the SVG file in
+your running emacs in a new buffer.
+
 Here is an example for use with Gnome:
   (setq osm-org-image-viewer-function
         (lambda (file)
@@ -84,7 +87,7 @@ Insert newline and an Org-mode image link and turn on `iimage-mode':
         (lambda (file)
           (end-of-line)
           (newline-and-indent)
-          (insert (format \"[[file:%s]]\"))
+          (insert (format \"[[file:%s]]\" file))
           (iimage-mode 1)))
 "
   :group 'osm-maps
