@@ -184,43 +184,6 @@ The return value is always an integer."
     (lsh val z)))
 
 
-(defun osm-compose-area-background (min-x min-y max-x max-y &optional zoom)
-  "Compose a background PNG image (i.e. a map) for an area.
-MIN-X, MIN-Y, MAX-X, MAX-Y and ZOOM must be positive integer values.
-They denote the row and column minimum and maximum values of the area
-to fetch.
-If FILE is supplied, write the result to file FILE.
-Returns the path to the resulting image PNG file.
-
-Montage needs imageMagick to be installed, so that montage is found in
-$PATH.
-
-DEPRECATED."
-  (let* ((x min-x) ;; FIXME: check for valid input
-         (y min-y) ;; FIXME: check for valid input
-         (w (+ 1 (- max-x min-x))) ;; FIXME: check for valid input
-         (h (+ 1 (- max-y min-y)))   ;; FIXME: check for valid input
-         (z (or zoom osm-default-zoom))
-         (command (executable-find "montage"))
-         (target (concat (osm-area-file-name x y max-x max-y z) ".png"))
-         )
-    (unless (and command (file-executable-p command))
-      (error "%s%s%s" "Trying to execute " command "! Is it installed?"))
-    (osm-fetch-area min-x min-y max-x max-y zoom)
-    (while (<= y max-y)
-      (setq x min-x)
-      (while (<= x max-x)
-        (setq command (concat command " " (osm-cache-file-name x y z)))
-        (setq x (+ 1 x)))
-      (setq y (+ 1 y)))
-    (message
-     "%s" (format "%s -geometry +0+0 -tile %dx%d %s" command w h target))
-    (shell-command
-     (format "%s -geometry +0+0 -tile %dx%d %s" command w h target))
-    target
-    ))
-
-
 (defun osm-longitude-to-x (longitude zoom)
   "Return the x value in pixels from the date line for
 a certain latitude."
