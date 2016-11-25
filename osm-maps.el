@@ -307,8 +307,9 @@ current `default-directory'."
                  (osm-area-file-name cmin rmin cmax rmax z)
                (concat defdir
                        (file-name-nondirectory
-                        (osm-area-file-name cmin rmin cmax rmax z))))
-             ".svg")))
+                        (osm-area-file-name cmin rmin cmax rmax z)))))))
+    (when (not (string-suffix-p ".svg" target))
+      (setq target (concat target ".svg")))
 
     (unless (file-directory-p (file-name-directory target))
       (make-directory (file-name-directory target) t))
