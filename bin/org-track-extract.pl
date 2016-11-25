@@ -601,7 +601,7 @@ sub leadIn {
 
 #
 # TODO:
-#  - Make (the-farthest-west-coor MINUS $minx) = 0.
+#  - Make (the-farthest-west-coord MINUS $minx) = 0.
 #  - Record each track as a <g> element and remember their upper left and lower right corners (plus coords).
 #  - Fill the svg with background tiles as needed.
 #  - Place the <g> elements in an SVG (on leadOut()) big enough to hold them all plus some margin.
