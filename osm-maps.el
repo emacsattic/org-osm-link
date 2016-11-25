@@ -391,12 +391,13 @@ current `default-directory'."
 
 
 (defun osm-draw-tracks (track-list &optional zoom)
-  "Draw tracks."
+  "Draw tracks.
+TRACK-LIST is what `osm-gpx-to-tracks' returns."
   (let ((z (or zoom osm-default-zoom))
         (image-list nil))
     (mapc (lambda (track)
             (push
-             (osm-draw-track (car track) (cadr track) z)
+             (osm-draw-track (cdr track) (car track) z)
              image-list))
           track-list)
     image-list))
