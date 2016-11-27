@@ -35,7 +35,7 @@
 
 ;;; Functions
 
-(defun osm-org-gpx-link-follow (path)
+(defun org-gpx-link-follow (path)
   "Follow the Org mode link when clicked."
   (let* ((tracks (osm-gpx-to-tracks path))
          (image-list (osm-draw-tracks tracks)))
@@ -50,9 +50,9 @@
              (file-truename (car image-list)))))
 
 
-(defun osm-org-link-export (path description format)
+(defun org-gpx-link-export (path description format)
   "TODO."
-  (error "osm-org-link-export: Not implemented yet.")
+  (error "org-gpx-link-export: Not implemented yet.")
   (let* ((trk (osm-check-track path))
          (coords (elt trk 1))
          (file (car trk))
@@ -81,8 +81,8 @@
 
 (org-add-link-type
  "gpx"
- 'osm-org-gpx-link-follow
- 'osm-org-gpx-link-export)
+ 'org-gpx-link-follow
+ 'org-gpx-link-export)
 
 
 (provide 'org-gpx-link)
