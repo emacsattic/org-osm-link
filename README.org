@@ -45,19 +45,14 @@
   : M-x customize-group RET osm-maps RET
 
   The most important feature is to adjust ist the caching behaviour.  This is
-  currently controlled by the variable =osm-do-cache=.  If this variable is
-  non-nil, the background tiles are downloaded and stored to disc for local
-  (fast) use.  I use symbolic links, to make the tiles available in several
-  directories.
+  controlled by the variable =osm-do-cache=.  If this variable is non-nil, the
+  background tiles are downloaded and stored to disc for local use.
 
-  Be careful!  Caching can take hours on slow connections for bigger areas.  But
-  only once per zoom level though.  The area I use for my training diary uses
-  26 MB disc space currently for tiles with zoom-level 15.
+  Downloading tiles might take some time for bigger areas.  The tiles needed to
+  cover my training area use 26 MB disc space (zoom-level 15).
 
-  Producing the images without caching is just as fast, but you will need to be
-  online when browsing the results.  Also, you'll need to be patient when
-  visiting maps that use online resources (background tiles on OSM servers).  In
-  the future I hope to restrict the caching to certain customizable areas.
+  Producing the images without caching is a bit faster, but you will need to be
+  online when browsing the results.
 
 * What do the links look like?
 
@@ -68,15 +63,13 @@
   ...or this (filename first):
   : [[track:FILENAME.svg((9.707032442092896 52.37033874553582)(9.711474180221558 52.375238282987))][DESCRIPTION]]
 
-
   Negative latitudes are on the southern hemisphere.
 
-  Once you click the link the image is created for you and shown in a new
-  buffer.  Existing tracks are re-used.  You may provide a custom funciton to
-  show the images.  See the docs for the custom variable
-  =`osm-org-image-viewer-function=' in =org-osm-link.el=.  The docstring for that
-  variable provide several proposals, one of which you might find useful.
-
+  Once you click the link, an image is created for you and shown in a new buffer
+  by default.  You may provide a custom funciton to show the images.  See the
+  docs for the custom variable =`osm-org-image-viewer-function=' in
+  =org-osm-link.el= (=C-h v osm-org-i TAB RET=).  The docstring provides several
+  proposals, one of which you might find useful.
 
 * How to insert track links easily
 
@@ -86,19 +79,14 @@
      link description and inserts the link at point.
 
   2. =M-x osm-org-gpx-to-links= asks for a gpx file to read and inserts all the
-     tracks found in that file interactively.
-
-
-* How to publish the maps with HTML?
-
-  See the docs for `osm-publish-map-for-html' in org-osm-link.el (or simply type
-  =C-h f osm-pu TAB RET=).
+     tracks found in that file interactively as seperate links.
 
 * Can I export osm-org track: links to GPX?
+
   Yes.  From within Emacs use
   : M-X osm-org-track-links-to-gpx
-  which works on the track: link point is in or the next link found.  If a region
-  is active, export all track: links found in there to a single GPX file.
+  which works on the track: link point is in or the next link found.  If a
+  region is active, export all track: links found in there to a single GPX file.
 
   From the command line, use =org-track-extract.pl= like this:
   : perl org-track-extract.pl -f gpx path-to-file.org
@@ -108,23 +96,10 @@
   For more information try
   : perl org-track-extract.pl -h
 
-* Caveats
+* Can I publish the maps with HTML?
 
-*** Crashes caused by looong lines in tooltips
-    Did not see this bug for long time now, though.  I use the bleeding edge
-    emacs from git...
-
-    Emacs used to crash every now and so often when I moved the mouse over a
-    track link.  This was caused by a bug with those very long lines in
-    tooltips.  You can avoid tooltips per file by adding these lines to the end
-    of your training diaries:
-    #+begin_example
-      # Local Variables:
-      # eval: (tooltip-mode -1)
-      # End:
-    #+end_example
-
-* Publishing Setup
+  Yes.  See the docs for `osm-publish-map-for-html' in org-osm-link.el
+  (=C-h f osm-pu TAB RET=).
 
   This is my publishing setup.  Well - the short version :)
 
@@ -132,57 +107,47 @@
     (setq org-publish-project-alist
           '(
             ;; Publishes the HTML pages.
-            ;; NOTE, that the OSM map tile directory is excluded!
+            ;; ... and generate missing SVG images for all track: links found
+            ;; and download missing background tiles to your cache directory.
             ("org-notes"
              :base-directory "~/org/notes/"
              :recursive t
              :base-extension "org"
-             ;; this could be: "/ssh:user@host:~/html/notebook/"
              :publishing-directory "~/public_html/org-notes/"
              :publishing-function org-html-publish-to-html
              :exclude "OSM"
              )
 
-            ;; Publish the tracks
+            ;; Publish the tracks.
             ("org-osm-maps"
              :base-directory "~/org/notes/tracks/"
              :publishing-directory "~/public_html/tracks/"
              :recursive t
              :base-extension "svg"
              :osm-cache-directory "~/org/notes/img/OSM/"
+             ;; Use `osm-publish-map-for-html':
              :publishing-function osm-publish-map-for-html
              )
 
-            ;; Publishing static content.
-            ;; AGAIN:  The OSM map tile directory is excluded!
-            ("org-notes-static"
-             :base-directory "~/org/notes/"
-             :exclude "OSM\\|oman-2010"
-             :recursive t
-             :base-extension "css\\|js\\|png\\|jpg\\|gif\\|ico\\|pdf\\|mp3\\|ogg\\|swf\\|txt\\|htm\\|html\\|dtd\\|php"
-             :publishing-directory "~/public_html/org-notes/"
-             :publishing-function org-publish-attachment)
+            ;; More componets ...
 
-            ("org" :components ("org-notes" "org-osm-maps" "org-notes-static"))))
+            ("org" :components ("org-notes" "org-osm-maps" "... more components"))))
   #+END_SRC
 
-* Things you might wanna add
+* Caveats
 
-  - *Better documentation*.
-  - Configure zoom levels and areas to cache the images for.  Produce SVGs with
-    online tiles for tracks outside of those areas, use the cached tile for
-    tracks in those areas.
-  - Produce a draggable JavaScript map on HTML export.
-  - Reuse the draggable JavaScript map to draw new tracks.
-  - Allow for POIs.
-  - Draw kilometer or mile markers.
-  - Configure start and destination icons.
-  - Allow for multiple tracks on one map.
-  - Draw a legend.
-  - Restrict images to a certain size and adjust the zoom level accordingly.
-  - Restrict the caching to certain customizable areas.
-  - HTML export: Produce thumbnails and link to bigger images.
+*** Crashes caused by looong lines in tooltips
 
+    Did not see this bug for long time now.  But Emacs used to crash every now
+    and so often when I moved the mouse over a track link.  This was caused by
+    those very long lines in tooltips when hovering a track: link.  You can
+    avoid tooltips per file by adding these lines to the end of your training
+    diaries:
+    #+begin_example
+      # Local Variables:
+      # eval: (tooltip-mode -1)
+      # End:
+    #+end_example
 
 
 # Local Variables:

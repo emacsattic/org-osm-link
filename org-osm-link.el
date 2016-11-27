@@ -242,13 +242,15 @@ example:
 
 :osm-cache-directory denotes the path to link the background tiles to.
 The directory is not checked for existence.  The value is turned into
-a path relative to the `file' parameter.
+a path relative to the `FILE' parameter.
 
 Example:
+
 If your SVG track lives in ~/org/tracks/ and your background-tiles in
-~/org/img/bg-tiles/, the tiles will be referenced by ../img/bg-tiles/.
-Therefor, if you publish your SVG tracks to ~/public_html/org/tracks/,
-there should be a directory (or smylink) ~/public_html/img/bg-tiles/."
+~/org/img/bg-tiles/, the tiles will be referenced in the SVGs by
+../img/bg-tiles/. Therefore, if you publish your SVG tracks to
+~/public_html/org/tracks/,  there should be a directory (or smylink)
+~/public_html/org/img/bg-tiles/."
   (let* ((target (concat
                   (file-name-as-directory pubdir)
                   (file-name-nondirectory file)))

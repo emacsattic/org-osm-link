@@ -92,7 +92,7 @@ See also: `osm-check-track'.")
 ;;; Functions
 
 (defun osm-yx-to-xy-lol (lol)
-  "Some application return lists with the values swapped:
+  "Some applications return lists with the values swapped:
  ((y1 x1) (y2 x2) ... ).  This functions turnes them into
 proper ((x1 y1) (x2 y2) ... ) lists.  All osm functions
 expect the latter format."
