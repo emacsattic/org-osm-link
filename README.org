@@ -4,9 +4,15 @@
 
 * OSM maps in Emacs and Org mode
 
-  =osm-maps.el= provides functions to produce SVG images with PNG map tiles as
-  backgrounds and your tracks on top of them.  Tracks are made of lists of pairs
-  of coordinates.
+  =osm-maps.el= provides functionality to work with GPS data and produce SVG images
+  with PNG map tiles (OSM or Google) as backgrounds and draw your tracks on top
+  of them.
+
+  =org-osm-link.el= provides a special link type for org-mode, that uses a series
+  of choords as URL.
+
+  =org-gpx-link.el= provides a special link type for org-mode that links to a GPX
+  file.
 
 * Implemented features
 
@@ -85,8 +91,8 @@
 
   Yes.  From within Emacs use
   : M-X osm-org-track-links-to-gpx
-  which works on the track: link point is in or the next link found.  If a
-  region is active, export all track: links found in there to a single GPX file.
+  which works on the track: link at point or the next link found.  If a region
+  is active, export all track: links found in there to a single GPX file.
 
   From the command line, use =org-track-extract.pl= like this:
   : perl org-track-extract.pl -f gpx path-to-file.org
